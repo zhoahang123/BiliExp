@@ -1,5 +1,6 @@
 from BiliClient import asyncbili
 from .import_once import now_time
+from random import randint
 import logging, json, asyncio
 
 end_time = now_time - (now_time + 28800) % 86400 + 43200 #当天中午12点
@@ -39,11 +40,28 @@ async def lottery_task(biliapi: asyncbili,
                                 dyid = x["desc"]["dynamic_id"]
                                 if dyid in already_repost_dyid: #若动态被转发过就跳过
                                     continue
+                                
+                                if isinstance(task_config["repost"], list):
+                                    if len(task_config["repost"]) > 0:
+                                        repost: str = task_config["repost"][randint(0, len(task_config["repost"]) - 1)] #取随机评论
+                                    else:
+                                        repost: str = ''
+                                else:
+                                    repost: str = task_config["repost"]
+
+                                if isinstance(task_config["reply"], list):
+                                    if len(task_config["reply"]) > 0:
+                                        reply: str = task_config["reply"][randint(0, len(task_config["reply"]) - 1)]
+                                    else:
+                                        reply: str = ''
+                                else:
+                                    reply: str = task_config["reply"]
+
                                 try:
-                                    await biliapi.dynamicRepostReply(dyid, task_config["repost"])
+                                    await biliapi.dynamicRepostReply(dyid, repost)
                                     detail = await biliapi.getDynamicDetail(dyid)
                                     oid = detail["data"]["card"]["desc"]["rid"]
-                                    await biliapi.dynamicReplyAdd(oid, task_config["reply"])
+                                    await biliapi.dynamicReplyAdd(oid, reply)
                                     logging.info(f'{biliapi.name}: 转发评论关键字动态(用户名:{uname},动态id:{dyid})成功')
                                 except Exception as e: 
                                     logging.warning(f'{biliapi.name}: 转发评论关键字动态(用户名:{uname},动态id:{dyid})异常，原因为{str(e)}')
@@ -58,11 +76,28 @@ async def lottery_task(biliapi: asyncbili,
                 dyid = x["desc"]["dynamic_id"]
                 if dyid in already_repost_dyid: #若动态被转发过就跳过
                     continue
+
+                if isinstance(task_config["repost"], list):
+                    if len(task_config["repost"]) > 0:
+                        repost: str = task_config["repost"][randint(0, len(task_config["repost"]) - 1)] #取随机评论
+                    else:
+                        repost: str = ''
+                else:
+                    repost: str = task_config["repost"]
+
+                if isinstance(task_config["reply"], list):
+                    if len(task_config["reply"]) > 0:
+                        reply: str = task_config["reply"][randint(0, len(task_config["reply"]) - 1)]
+                    else:
+                        reply: str = ''
+                else:
+                    reply: str = task_config["reply"]
+
                 try:
-                    await biliapi.dynamicRepostReply(dyid, task_config["repost"]) #这里转发到自己的动态
+                    await biliapi.dynamicRepostReply(dyid, repost) #这里转发到自己的动态
                     detail = await biliapi.getDynamicDetail(dyid)
                     oid = detail["data"]["card"]["desc"]["rid"]
-                    await biliapi.dynamicReplyAdd(oid, task_config["reply"])    #这里评论
+                    await biliapi.dynamicReplyAdd(oid, reply)    #这里评论
                     logging.info(f'{biliapi.name}: 转发评论抽奖动态(用户名:{uname},动态id:{dyid})成功')
                 except Exception as e: 
                     logging.warning(f'{biliapi.name}: 转发评论抽奖动态(用户名:{uname},动态id:{dyid})异常，原因为{str(e)}')
