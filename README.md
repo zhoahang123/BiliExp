@@ -82,6 +82,13 @@ BiliExp-Actions
         需要本地运行则直接配置config/config.json文件并运行BiliExp.py即可(必须安装依赖aiohttp，可以执行pip3 install aiohttp)
     ```
 
+* 4.更新代码
+    *  4.1 手动更新
+        *  4.1.1 进入"Actions" --》"auto_merge"，点击右边的"Run workflow"即可启动代码更新
+		*  4.1.2 代码更新后请手动启动一次"run BiliExp"，如果启动失败请重新配置上面的参数
+    *  4.1 定时自动更新(不推荐)
+        *  4.1.1 进入文件夹.github/workflows，删除auto_merge.yml文件中第5,6行前面的`#`即可定时启动代码更新
+
 </br>
 
 ### 2020/11/05更新
