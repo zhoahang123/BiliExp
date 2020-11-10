@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from aiohttp import ClientSession
+import time
 
 class asyncBiliApi(object):
     '''B站异步接口类'''
@@ -299,10 +300,105 @@ class asyncBiliApi(object):
             ret = await r.json()
         return aid, ret
 
+    async def xliveWebHeartBeat(self, 
+                     hb: str = None, 
+                     pf: str = None
+                     ) -> dict:
+        '''
+        B站直播间心跳
+        hb str 请求信息(base64编码) "{周期}|{uid}|1|0"
+        pf str 平台 "web"
+        '''
+        params = {}
+        if hb:
+            params["hb"] = hb
+        if pf:
+            params["pf"] = pf
+        url = 'https://live-trace.bilibili.com/xlive/rdata-interface/v1/heartbeat/webHeartBeat'
+        async with self._session.get(url, params=params, verify_ssl=False) as r:
+            ret = await r.json()
+        return ret
+
+    async def get_buvid(self) -> str:
+        '''
+        获得B站直播buvid参数
+        '''
+        url = 'https://live.bilibili.com/3'
+        async with self._session.head(url, verify_ssl=False) as r:
+            cookie = r.cookies['LIVE_BUVID']
+        return str(cookie)[23:43]
+
+    async def xliveHeartBeatX(self, 
+                     id: list, 
+                     device: list,
+                     ts: int,
+                     ets: int,
+                     benchmark: str,
+                     time: int,
+                     s: str
+                     ) -> dict:
+        '''
+        B站直播间内部心跳
+        id List[int] 整数数组[大分区,小分区,轮次,长位直播间]
+        device List[str] 字符串数组[bvuid, uuid]
+        ts int 时间戳
+        ets int 上次心跳时间戳timestamp
+        benchmark str 上次心跳秘钥secret_key
+        time int 上次心跳时间间隔
+        s str 加密字符串，由id, device, ets, ts, benchmark, time等参数计算出
+        '''
+        post_data = {
+            "id": f'[{id[0]},{id[1]},{id[2]},{id[3]}]',
+            "device": f'["{device[0]}","{device[1]}"]',
+            "ts": ts,
+            "ets": ets,
+            "benchmark": benchmark,
+            "time": time,
+            "ua": 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/63.0.3239.108',
+            "csrf_token": self._bili_jct,
+            "csrf": self._bili_jct,
+            "s": s
+            }
+        url = 'https://live-trace.bilibili.com/xlive/data-interface/v1/x25Kn/X'
+        async with self._session.post(url, data=post_data, verify_ssl=False) as r:
+            ret = await r.json()
+        return ret
+
+    async def xliveHeartBeatE(self, 
+                     id: list, 
+                     device: list
+                     ) -> dict:
+        '''
+        B站进入直播间心跳
+        id List[int] 整数数组[大分区,小分区,轮次,长位直播间]
+        device List[str] 字符串数组[bvuid, uuid]
+        '''
+        post_data = {
+            "id": f'[{id[0]},{id[1]},{id[2]},{id[3]}]',
+            "device": f'["{device[0]}","{device[1]}"]',
+            "ts": int(time.time() * 1000),
+            "is_patch": 0, 
+            "heart_beat": [], #短时间多次进入直播间，is_patch为1，heart_beat传入xliveHeartBeatX所需要的所有数据
+            "ua": 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/63.0.3239.108',
+            "csrf_token": self._bili_jct,
+            "csrf": self._bili_jct
+            }
+        url = 'https://live-trace.bilibili.com/xlive/data-interface/v1/x25Kn/E'
+        async with self._session.post(url, data=post_data, verify_ssl=False) as r:
+            ret = await r.json()
+        return ret
+
+    async def get_home_medals(self) -> dict:
+        '''获得佩戴的勋章'''
+        url = "https://api.live.bilibili.com/fans_medal/v1/fans_medal/get_home_medals"
+        async with self._session.get(url, verify_ssl=False) as r:
+            ret = await r.json()
+        return ret
+
     async def report(self, 
-                     aid, 
-                     cid, 
-                     progres
+                     aid: int, 
+                     cid: int, 
+                     progres: int
                      ) -> dict:
         '''
         B站上报视频观看进度
@@ -834,6 +930,18 @@ class asyncBiliApi(object):
             **kwargs #所有可选参数
             }
         async with self._session.post(url, data=post_data, verify_ssl=False) as r:
+            ret = await r.json()
+        return ret
+
+    async def accInfo(self,
+                      uid: int
+                      ) -> None:
+        '''
+        获取指定用户的空间个人信息
+        uid int 用户uid
+        '''
+        url = f'https://api.bilibili.com/x/space/acc/info?mid={uid}'
+        async with self._session.get(url, verify_ssl=False) as r:
             ret = await r.json()
         return ret
 
