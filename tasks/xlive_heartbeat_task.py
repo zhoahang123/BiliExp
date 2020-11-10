@@ -30,7 +30,7 @@ async def xlive_heartbeat_task(biliapi: asyncbili,
             return
 
         if not room_id:
-            logging.info(f'{biliapi.name}: 获取直播间异常，原因为{str(e)}，跳过直播心跳。(建议手动指定直播间)')
+            logging.info(f'{biliapi.name}: 没有领取过勋章且在线的直播间，跳过直播心跳。(建议手动指定直播间)')
             return
 
     try:

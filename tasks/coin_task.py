@@ -24,7 +24,8 @@ async def coin_task(biliapi: asyncbili,
 
     coin_exp_num = (task_config["num"] * 10 - reward["coins_av"]) // 10
     toubi_num = coin_exp_num if coin_num > coin_exp_num else coin_num
-    
+    toubi_num = int(toubi_num)
+
     if toubi_num < 1:
         return
     else:
