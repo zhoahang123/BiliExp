@@ -90,6 +90,71 @@ class asyncBiliApi(object):
         self._coin = ret["data"]["money"]
         self._exp = ret["data"]["level_info"]["current_exp"]
 
+    async def getFollowings(self, 
+                            uid: int = None, 
+                            pn: int = 1, 
+                            ps: int = 50, 
+                            order: str = 'desc', 
+                            order_type: str = 'attention'
+                            ) -> dict:
+        '''
+        获取指定用户关注的up主
+        uid int 账户uid，默认为本账户，非登录账户只能获取20个*5页
+        pn int 页码，默认第一页
+        ps int 每页数量，默认50
+        order str 排序方式，默认desc
+        order_type 排序类型，默认attention
+        '''
+        if not uid:
+            uid = self._uid
+        url = f'https://api.bilibili.com/x/relation/followings?vmid={uid}&pn={pn}&ps={ps}&order={order}&order_type={order_type}'
+        async with self._session.get(url, verify_ssl=False) as r:
+            ret = await r.json()
+        return ret
+
+    async def spaceArticle(self, 
+                            uid: int = None,
+                            pn: int = 1, 
+                            ps: int = 30, 
+                            sort: str = 'publish_time', 
+                            ) -> dict:
+        '''
+        获取指定up主空间专栏投稿信息
+        uid int 账户uid，默认为本账户
+        pn int 页码，默认第一页
+        ps int 每页数量，默认50
+        sort str 排序方式，默认publish_time
+        '''
+        if not uid:
+            uid = self._uid
+        url = f'https://api.bilibili.com/x/space/article?mid={uid}&pn={pn}&ps={ps}&sort={sort}'
+        async with self._session.get(url, verify_ssl=False) as r:
+            ret = await r.json()
+        return ret
+
+    async def spaceArcSearch(self, 
+                          uid: int = None,
+                          pn: int = 1, 
+                          ps: int = 100, 
+                          tid: int = 0,
+                          order: str = 'pubdate', 
+                          keyword: str = ''
+                          ) -> dict:
+        '''
+        获取指定up主空间视频投稿信息
+        uid int 账户uid，默认为本账户
+        pn int 页码，默认第一页
+        ps int 每页数量，默认50
+        tid int 分区 默认为0(所有分区)
+        order str 排序方式，默认pubdate
+        keyword str 关键字，默认为空
+        '''
+        if not uid:
+            uid = self._uid
+        url = f'https://api.bilibili.com/x/space/arc/search?mid={uid}&pn={pn}&ps={ps}&tid={tid}&order={order}&keyword={keyword}'
+        async with self._session.get(url, verify_ssl=False) as r:
+            ret = await r.json()
+        return ret
 
     async def getWebNav(self) -> dict:
         '''取导航信息'''
@@ -278,10 +343,10 @@ class asyncBiliApi(object):
         return ret
 
     async def coin(self, 
-             aid: int, 
-             num=1, 
-             select_like=1
-             ) -> dict:
+                   aid: int, 
+                   num: int = 1, 
+                   select_like: int = 1
+                   ) -> dict:
         '''
         给指定av号视频投币
         aid int 视频av号
@@ -298,7 +363,48 @@ class asyncBiliApi(object):
             }
         async with self._session.post(url, data=post_data, verify_ssl=False) as r:
             ret = await r.json()
-        return aid, ret
+        return ret
+
+    async def coinCv(self,
+                    cvid: int, 
+                    num: int = 1, 
+                    upid: int = 0, 
+                    select_like: int = 1
+                    ) -> dict:
+        '''
+        给指定cv号专栏投币
+        cvid int 专栏id
+        num int 投币数量
+        upid int 专栏up主uid
+        select_like int 是否点赞
+        '''
+        url = "https://api.bilibili.com/x/web-interface/coin/add"
+        if upid == 0: #up主id不能为空，需要先请求一下专栏的up主
+            info = await self.articleViewInfo(cvid)
+            upid = info["data"]["mid"]
+        post_data = {
+            "aid": cvid,
+            "multiply": num,
+            "select_like": select_like,
+            "upid": upid,
+            "avtype": 2,#专栏必为2，否则投到视频上面去了
+            "csrf": self._bili_jct
+            }
+        async with self._session.post(url, data=post_data, verify_ssl=False) as r:
+            ret = await r.json()
+        return ret
+
+    async def articleViewInfo(self, 
+                              cvid: int
+                              ) -> dict:
+        '''
+        获取专栏信息
+        cvid int 专栏id
+        '''
+        url = f'https://api.bilibili.com/x/article/viewinfo?id={cvid}'
+        async with self._session.get(url, params=params, verify_ssl=False) as r:
+            ret = await r.json()
+        return ret
 
     async def xliveWebHeartBeat(self, 
                      hb: str = None, 
@@ -328,7 +434,7 @@ class asyncBiliApi(object):
         #cookie中找不到，则请求一次直播页面
         url = 'https://live.bilibili.com/3'
         async with self._session.head(url, verify_ssl=False) as r:
-            cookie = r.cookies['LIVE_BUVID']
+            cookies = r.cookies['LIVE_BUVID']
         return str(cookie)[23:43]
 
     async def xliveHeartBeatX(self, 
