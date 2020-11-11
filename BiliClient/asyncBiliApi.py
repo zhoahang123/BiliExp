@@ -983,6 +983,17 @@ class asyncBiliApi(object):
             ret = await r.json()
         return ret
 
+    async def juryCaseInfo(self,
+                           cid: int
+                           ) -> dict:
+        '''
+        获取风纪委员案件详细信息
+        '''
+        url = 'https://api.bilibili.com/x/credit/jury/caseInfo?cid={cid}'
+        async with self._session.get(url, verify_ssl=False) as r:
+            ret = await r.json()
+        return ret
+
     async def juryVote(self,
                        cid: int,
                        **kwargs #非必选参数太多以可变参数列表传入

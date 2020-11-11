@@ -80,6 +80,11 @@
         },
         "judgement_task": { /*  风纪委员投票(每次运行投当前所有案件) */
             "enable": false, /*  对风纪委员投票不了解的请不要开启本功能 */
+            "baiduNLP": { /*  百度语言情感分析，直接影响params参数中vote值 */
+                "confidence": 0.6, /*  置信系数门限 */
+                "negative_prob": 0.6, /*  积极概率门限 */
+                "positive_prob": 0.7  /*  消极概率门限 */
+            },
             "params": {    /* 投票参数，参见下面参数说明 */
                 "vote": 4,
                 "attr": 0
