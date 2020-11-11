@@ -328,7 +328,7 @@ class asyncBiliApi(object):
         #cookie中找不到，则请求一次直播页面
         url = 'https://live.bilibili.com/3'
         async with self._session.head(url, verify_ssl=False) as r:
-            cookies = r.cookies['LIVE_BUVID']
+            cookie = r.cookies['LIVE_BUVID']
         return str(cookie)[23:43]
 
     async def xliveHeartBeatX(self, 
