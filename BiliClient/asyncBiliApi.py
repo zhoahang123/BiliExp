@@ -319,13 +319,16 @@ class asyncBiliApi(object):
             ret = await r.json()
         return ret
 
-    async def get_buvid(self) -> str:
-        '''
-        获得B站直播buvid参数
-        '''
+    async def xliveGetBuvid(self) -> str:
+        '''获得B站直播buvid参数'''
+        #先查找cookie
+        for x in self._session.cookie_jar:
+            if x.key == 'LIVE_BUVID':
+                return x.value
+        #cookie中找不到，则请求一次直播页面
         url = 'https://live.bilibili.com/3'
         async with self._session.head(url, verify_ssl=False) as r:
-            cookie = r.cookies['LIVE_BUVID']
+            cookies = r.cookies['LIVE_BUVID']
         return str(cookie)[23:43]
 
     async def xliveHeartBeatX(self, 
@@ -953,3 +956,5 @@ class asyncBiliApi(object):
 
     async def close(self) -> None:
         await self._session.close()
+
+

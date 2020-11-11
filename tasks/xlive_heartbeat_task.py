@@ -46,14 +46,14 @@ async def xlive_heartbeat_task(biliapi: asyncbili,
         return
 
     try:
-        buvid = await biliapi.get_buvid()
+        buvid = await biliapi.xliveGetBuvid()
     except Exception as e:
         logging.warning(f'{biliapi.name}: 获取直播buvid异常，原因为{str(e)}，跳过直播心跳')
         return
-    
+
     ii = 0
     try:
-        async for code, message in xliveHeartBeat(biliapi, buvid, parent_area_id, area_id, room_id, num): #每一次迭代发送一次心跳
+        async for code, message in xliveHeartBeat(biliapi, buvid, parent_area_id, area_id, room_id): #每一次迭代发送一次心跳
             if code != 0:
                 logging.warning(f'{biliapi.name}: 直播心跳错误，原因为{message}，跳过直播心跳')
                 return
