@@ -63,6 +63,7 @@ async def xlive_heartbeat_task(biliapi: asyncbili,
                 await asyncio.sleep(300) #等待300秒进行下一次迭代
             else:
                 logging.info(f'{biliapi.name}: 成功在id为{room_id}的直播间发送完{ii}次心跳，退出直播心跳')
+                break
             
     except Exception as e:
         logging.warning(f'{biliapi.name}: 直播心跳异常，原因为{str(e)}，退出直播心跳')
