@@ -156,6 +156,43 @@ class asyncBiliApi(object):
             ret = await r.json()
         return ret
 
+    async def search(self, 
+                     keyword: str = '',
+                     context: str = '',
+                     page: int = 1,
+                     tids: int = 0,
+                     order: str = '', 
+                     duration: int = 0,
+                     search_type: str = 'video'
+                     ) -> dict:
+        '''
+        获取指定视频投稿信息
+        keyword str 关键字
+        context str 未知
+        page int 页码，默认第一页
+        tids int 分区 默认为0(所有分区)
+        order str 排序方式，默认为空(综合排序)
+        duration int 时长过滤，默认0(所有时长)
+        search_type str 搜索类型，默认video(视频)
+        '''
+        params = {
+            "keyword": keyword,
+            "context": context,
+            "page": page,
+            "tids": tids,
+            "order": order,
+            "duration": duration,
+            "search_type": search_type,
+            "single_column": 0,
+            "__refresh__": "true",
+            "tids_2": '',
+            "_extra": ''
+            }
+        url = 'https://api.bilibili.com/x/web-interface/search/type'
+        async with self._session.get(url, params=params, verify_ssl=False) as r:
+            ret = await r.json()
+        return ret
+
     async def getWebNav(self) -> dict:
         '''取导航信息'''
         url = "https://api.bilibili.com/x/web-interface/nav"
@@ -989,7 +1026,7 @@ class asyncBiliApi(object):
         '''
         获取风纪委员案件详细信息
         '''
-        url = 'https://api.bilibili.com/x/credit/jury/caseInfo?cid={cid}'
+        url = f'https://api.bilibili.com/x/credit/jury/caseInfo?cid={cid}'
         async with self._session.get(url, verify_ssl=False) as r:
             ret = await r.json()
         return ret
