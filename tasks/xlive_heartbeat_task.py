@@ -53,14 +53,14 @@ async def xlive_heartbeat_task(biliapi: asyncbili,
 
     ii = 0
     try:
-        async for code, message in xliveHeartBeat(biliapi, buvid, parent_area_id, area_id, room_id): #每一次迭代发送一次心跳
+        async for code, message, wtime in xliveHeartBeat(biliapi, buvid, parent_area_id, area_id, room_id): #每一次迭代发送一次心跳
             if code != 0:
                 logging.warning(f'{biliapi.name}: 直播心跳错误，原因为{message}，跳过直播心跳')
                 return
             ii += 1
             if ii < num:
                 logging.info(f'{biliapi.name}: 成功在id为{room_id}的直播间发送第{ii}次心跳')
-                await asyncio.sleep(300) #等待300秒进行下一次迭代
+                await asyncio.sleep(wtime) #等待wtime秒进行下一次迭代
             else:
                 logging.info(f'{biliapi.name}: 成功在id为{room_id}的直播间发送完{ii}次心跳，退出直播心跳')
                 break
@@ -101,7 +101,7 @@ class xliveHeartBeat:
                 self._data["time"] = ret["data"]["heartbeat_interval"]
                 self._secret_rule = ret["data"]["secret_rule"]
                 self._data["id"][2] += 1
-            return ret["code"], ret["message"]
+            return ret["code"], ret["message"], ret["data"]["heartbeat_interval"]
 
         else:                          #第n>1次执行进入房间心跳 HeartBeatX
             self._data["ts"] = int(time.time() * 1000)
@@ -113,4 +113,4 @@ class xliveHeartBeat:
                 self._data["time"] = ret["data"]["heartbeat_interval"]
                 self._secret_rule = ret["data"]["secret_rule"]
                 self._data["id"][2] += 1
-            return ret["code"], ret["message"]
+            return ret["code"], ret["message"], ret["data"]["heartbeat_interval"]
