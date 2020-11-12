@@ -193,6 +193,27 @@ class asyncBiliApi(object):
             ret = await r.json()
         return ret
 
+    async def getRelationTags(self) -> dict:
+        '''取关注用户分组列表'''
+        url = "https://api.bilibili.com/x/relation/tags"
+        async with self._session.get(url, verify_ssl=False) as r:
+            ret = await r.json()
+        return ret
+
+    async def getRelation(self,
+                          tagid: int = 0,
+                          pn: int = 1,
+                          ps: int = 50
+                          )-> dict:
+        '''
+        取关注分组内up主列表
+        tagid int 分组id
+        '''
+        url = f"https://api.bilibili.com/x/relation/tag?tagid={tagid}&pn={pn}&ps={ps}"
+        async with self._session.get(url, verify_ssl=False) as r:
+            ret = await r.json()
+        return ret
+
     async def getWebNav(self) -> dict:
         '''取导航信息'''
         url = "https://api.bilibili.com/x/web-interface/nav"
@@ -472,7 +493,7 @@ class asyncBiliApi(object):
         url = 'https://live.bilibili.com/3'
         async with self._session.head(url, verify_ssl=False) as r:
             cookies = r.cookies['LIVE_BUVID']
-        return str(cookie)[23:43]
+        return str(cookies)[23:43]
 
     async def xliveHeartBeatX(self, 
                      id: list, 
