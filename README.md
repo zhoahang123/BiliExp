@@ -28,7 +28,10 @@ BiliExp-Actions
 
 ### 使用方式
 * 1.准备
-    *  1.1 一个或多个B站账号，以及登录后获取的SESSDATA，bili_jct，DedeUserID (获取方式见最下方示意图)
+    *  1.1 一个或多个B站账号，以及登录后获取的SESSDATA，bili_jct，DedeUserID (获取方式见下方示意图)
+	   `浏览器打开B站主页--》按F12打开开发者工具--》application--》cookies`
+	   
+       <div align="center"><img src="https://s1.ax1x.com/2020/09/23/wjM09e.png" width="800" height="450" title="获取cookies示例"></div>
     *  1.2 fork本项目
 * 2.简单部署(与3.复杂部署二选一)
     *  2.1 在fork后的github仓库的 “Settings” --》“Secrets” 中添加"Secrets"，name(不用在意大小写)和value分别为：
@@ -62,6 +65,8 @@ BiliExp-Actions
 		注：每行一个推送参数(SCKEY email或者空行)，***不规定顺序***并且可以只选填其中一项。(填多个SCKEY或email只推送最后一个)
     *  2.2 添加完上面的"Secrets"后，进入"Actions" --》"run BiliExp"，点击右边的"Run workflow"即可第一次启动
         *  2.2.1 首次fork可能要去actions(正上方的actions不是Settings里面的actions)里面同意使用actions条款，如果"Actions"里面没有"run BiliExp"，点一下右上角的"star"，"run BiliExp"就会出现在"Actions"里面
+		![image](https://user-images.githubusercontent.com/67217225/98933791-16659480-251c-11eb-9713-c3dbcc6321bf.png)
+		![image](https://user-images.githubusercontent.com/67217225/98934269-c935f280-251c-11eb-8bce-b8fa04c68cb8.png)
         *  2.2.2 第一次启动后，脚本会每天12:00自动执行，不需要再次手动执行(第一次手动执行这个步骤不能忽略)。
         ```
         注: 本部署方式仅提供默认配置，功能的详细配置包括但不限于以下所列，请使用下面的复杂部署方式
@@ -72,9 +77,9 @@ BiliExp-Actions
 		5. 风纪委员投票功能的启用与详细配置，简单部署不启用此功能
 		6. 直播心跳获取小心心功能的启用与详细配置，简单部署不启用此功能
         ```
-        
+    
 * 3.复杂部署与本地部署(与2.简单部署二选一)
-    *  3.1 进入config文件夹，按照说明配置config.json文件
+    *  3.1 进入config文件夹，按照说明配置config.json文件(***不保存到仓库**)
     *  3.2 在fork后的github仓库的 “Settings” --》“Secrets” 中添加"Secrets"，name和value分别为：
         *  3.2.1 name为"advconfig"(注意不是上面的biliconfig)     value为3.1步骤配置好的config.json文件(直接把整个文件复制到这里)
     *  3.3 同上面2.2配置
@@ -84,11 +89,8 @@ BiliExp-Actions
     ```
 
 * 4.更新代码
-    *  4.1 手动更新
-        *  4.1.1 进入"Actions" --》"auto_merge"，点击右边的"Run workflow"即可启动代码更新
-		*  4.1.2 代码更新后请手动启动一次"run BiliExp"，如果启动失败请重新配置上面的参数
-    *  4.1 定时自动更新(不推荐)
-        *  4.1.1 进入文件夹.github/workflows，删除auto_merge.yml文件中第5,6行前面的`#`即可定时启动代码更新
+    
+    *  进入文件夹.github/workflows，删除auto_merge.yml文件中第5,6行前面的`#`即可定时启动代码更新
 
 </br>
 
@@ -157,10 +159,3 @@ BiliExp-Actions
 ### 2020/09/24更新
 
 * 1.移除参加B站活动抽奖的脚本的活动列表文件，改为自动获取。(现在这个活动抽奖很鸡肋)
-
-</br></br>
-
-
-B站操作需要的cookie数据可以按照以下方式获取
-浏览器打开B站主页--》按F12打开开发者工具--》application--》cookies
-<div align="center"><img src="https://s1.ax1x.com/2020/09/23/wjM09e.png" width="800" height="450" title="获取cookies示例"></div>
