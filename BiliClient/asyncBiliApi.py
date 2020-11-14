@@ -8,10 +8,11 @@ class asyncBiliApi(object):
 
         headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/63.0.3239.108","Referer": "https://www.bilibili.com/",'Connection': 'keep-alive'}
         self._islogin = False
+        self._show_name = None
         self._session = ClientSession(
                 headers = headers
                 )
-        
+    
     async def login_by_cookie(self, cookieData, checkBanned=True) -> bool:
         '''
         登录并获取账户信息
@@ -66,6 +67,16 @@ class asyncBiliApi(object):
     
     @property
     def name(self) -> str:
+        '''获取用于显示的用户名'''
+        return self._show_name
+
+    @name.setter
+    def name(self, name: str) -> None:
+        '''设置用于显示的用户名'''
+        self._show_name = name
+
+    @property
+    def username(self) -> str:
         '''获取登录的账户用户名'''
         return self._name
 
@@ -89,6 +100,8 @@ class asyncBiliApi(object):
         self._verified = ret["data"]["mobile_verified"]
         self._coin = ret["data"]["money"]
         self._exp = ret["data"]["level_info"]["current_exp"]
+        if not self._show_name:
+            self._show_name = self._name
 
     def refreshCookie(self) -> None:
         '''刷新cookie(需要先登录)'''
