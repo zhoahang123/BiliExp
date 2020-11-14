@@ -90,6 +90,16 @@ class asyncBiliApi(object):
         self._coin = ret["data"]["money"]
         self._exp = ret["data"]["level_info"]["current_exp"]
 
+    def refreshCookie(self) -> None:
+        '''刷新cookie(需要先登录)'''
+        cookies = {}
+        keys = ("SESSDATA","bili_jct","DedeUserID","LIVE_BUVID")
+        for x in self._session.cookie_jar:
+            if x.key in keys:
+                cookies[x.key] = x.value
+        self._session.cookie_jar.clear()
+        self._session.cookie_jar.update_cookies(cookies)
+
     async def getFollowings(self, 
                             uid: int = None, 
                             pn: int = 1, 
@@ -880,25 +890,17 @@ class asyncBiliApi(object):
         return ret
 
     async def getDynamic(self, 
+                         offset_dynamic_id: int = 0,
                          type_list=268435455
                          ) -> dict:
         '''取B站用户动态数据'''
-        async with self._session.get(f'https://api.vc.bilibili.com/dynamic_svr/v1/dynamic_svr/dynamic_new?uid={self._uid}&type_list={type_list}', verify_ssl=False) as r:
+        if offset_dynamic_id:
+            url = f'https://api.vc.bilibili.com/dynamic_svr/v1/dynamic_svr/dynamic_history?uid={self._uid}&offset_dynamic_id={offset_dynamic_id}&type={type_list}'
+        else:
+            url = f'https://api.vc.bilibili.com/dynamic_svr/v1/dynamic_svr/dynamic_new?uid={self._uid}&type_list={type_list}'
+        async with self._session.get(url, verify_ssl=False) as r:
             ret = await r.json()
-        cards = ret["data"]["cards"]
-        for x in cards:
-            yield x
-        hasnext = True
-        offset = cards[-1]["desc"]["dynamic_id"]
-        while hasnext:
-            async with self._session.get(f'https://api.vc.bilibili.com/dynamic_svr/v1/dynamic_svr/dynamic_history?uid={self._uid}&offset_dynamic_id={offset}&type={type_list}', verify_ssl=False) as r:
-                ret = await r.json()
-            hasnext = (ret["data"]["has_more"] == 1)
-            #offset = ret["data"]["next_offset"]
-            cards = ret["data"]["cards"]
-            for x in cards:
-                yield x
-            offset = cards[-1]["desc"]["dynamic_id"]
+        return ret
 
     async def getDynamicDetail(self, 
                          dynamic_id: int
@@ -922,7 +924,7 @@ class asyncBiliApi(object):
         评论动态
         oid int 动态id
         message str 评论信息
-        type int 评论类型
+        type int 评论类型，动态时原创则填11，非原创填17
         plat int 平台
         '''
         url = "https://api.bilibili.com/x/v2/reply/add"
@@ -935,6 +937,33 @@ class asyncBiliApi(object):
             }
         async with self._session.post(url, data=post_data, verify_ssl=False) as r:
             ret = await r.json()
+        return ret
+
+    async def dynamicRepost(self, 
+                            dynamic_id: int, 
+                            content="", 
+                            extension='{"emoji_type":1}'
+                            ) -> dict:
+        '''
+        转发动态
+        dynamic_id int 动态id
+        content str 转发评论内容
+        extension str_json
+        '''
+        url = "https://api.vc.bilibili.com/dynamic_repost/v1/dynamic_repost/repost"
+        post_data = {
+            "uid": self._uid,
+            "dynamic_id": dynamic_id,
+            "content": content,
+            "at_uids": '',
+            "ctrl": '[]',
+            "extension": extension,
+            "csrf": self._bili_jct,
+            "csrf_token": self._bili_jct
+            }
+        async with self._session.post(url, data=post_data, verify_ssl=False) as r:
+            ret = await r.json()
+        #{"code":0,"msg":"","message":"","data":{"result":0,"errmsg":"符合条件，允许发布","_gt_":0}}
         return ret
 
     async def dynamicRepostReply(self, 
