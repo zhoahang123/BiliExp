@@ -210,6 +210,19 @@ class asyncBiliApi(object):
             ret = await r.json()
         return ret
 
+    async def getRelationByUid(self,
+                          uid: int
+                          ) -> dict:
+        '''
+        判断与某个up关系
+        是否关注，关注时间，是否拉黑.....
+        uid int up主uid
+        '''
+        url = f"https://api.bilibili.com/x/relation?fid={uid}"
+        async with self._session.get(url, verify_ssl=False) as r:
+            ret = await r.json()
+        return ret
+
     async def getRelation(self,
                           tagid: int = 0,
                           pn: int = 1,
@@ -998,28 +1011,20 @@ class asyncBiliApi(object):
             ret = await r.json()
         return ret
 
-    async def getMyDynamic(self, 
-                           uid=0
-                           ) -> 'generator':
+    async def getSpaceDynamic(self, 
+                              uid: int = 0,
+                              offset_dynamic_id: int = ''
+                              ) -> 'dict':
         '''
-        取B站用户的动态列表，生成器
+        取B站空间的动态列表
         uid int B站用户uid
         '''
         if uid == 0:
             uid = self._uid
-        url = f'https://api.vc.bilibili.com/dynamic_svr/v1/dynamic_svr/space_history?host_uid={uid}&need_top=1&offset_dynamic_id='
-        hasnext = True
-        offset = ''
-        while hasnext:
-            async with self._session.get(f'{url}{offset}', verify_ssl=False) as r:
-                ret = await r.json()
-            hasnext = (ret["data"]["has_more"] == 1)
-            if not 'cards' in ret["data"]:
-                continue
-            cards = ret["data"]["cards"]
-            for x in cards:
-                yield x
-            offset = x["desc"]["dynamic_id_str"]
+        url = f'https://api.vc.bilibili.com/dynamic_svr/v1/dynamic_svr/space_history?host_uid={uid}&need_top=1&offset_dynamic_id={offset_dynamic_id}'
+        async with self._session.get(url, verify_ssl=False) as r:
+            ret = await r.json()
+        return ret
 
     async def removeDynamic(self, 
                             dynamic_id: int
