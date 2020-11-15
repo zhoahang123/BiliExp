@@ -216,6 +216,25 @@ class asyncBiliApi(object):
             ret = await r.json()
         return ret
 
+    async def followUser(self, 
+                         followid: int, 
+                         type: int = 1
+                         ):
+        '''
+        关注或取关up主
+        followid int 要操作up主的uid
+        type int 操作类型 1关注 0取关
+        '''
+        url = "https://api.vc.bilibili.com/feed/v1/feed/SetUserFollow"
+        post_data = {
+            "type": type,
+            "follow": followid,
+            "csrf_token": self._bili_jct
+            }
+        async with self._session.post(url, data=post_data, verify_ssl=False) as r:
+            ret = await r.json()
+        return ret
+
     async def getRelationTags(self) -> dict:
         '''取关注用户分组列表'''
         url = "https://api.bilibili.com/x/relation/tags"
@@ -1127,7 +1146,7 @@ class asyncBiliApi(object):
         '''
         if uid == 0:
             uid = self._uid
-        url = f'https://api.vc.bilibili.com/dynamic_svr/v1/dynamic_svr/space_history?host_uid={uid}&need_top=1&offset_dynamic_id={offset_dynamic_id}'
+        url = f'https://api.vc.bilibili.com/dynamic_svr/v1/dynamic_svr/space_history?host_uid={uid}&need_top=0&offset_dynamic_id={offset_dynamic_id}'
         async with self._session.get(url, verify_ssl=False) as r:
             ret = await r.json()
         return ret
