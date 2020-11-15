@@ -5,33 +5,39 @@ async def xlive_heartbeat_task(biliapi: asyncbili,
                                task_config: dict
                                ) -> None:
 
+    rooms = None
+    send_msg = task_config.get("send_msg", "")
+    if send_msg:
+        rooms = await get_rooms(biliapi)
+        for roominfo in rooms:
+            try:
+                ret = await biliapi.xliveMsgSend(roominfo[0], send_msg)
+            except Exception as e:
+                logging.warning(f'{biliapi.name}: 直播在房间{roominfo[0]}发送信息异常，原因为{str(e)}')
+            else:
+                if ret["code"] == 0:
+                    logging.info(f'{biliapi.name}: 直播在房间{roominfo[0]}发送信息成功')
+                else:
+                     logging.warning(f'{biliapi.name}: 直播在房间{roominfo[0]}发送信息失败，消息为{ret["message"]}')
+
     num: int = task_config.get("num", 0)
     if not num:
         return
 
     room_id: int = task_config.get("room_id", 0)
-    if not room_id:
+    if not room_id > 0:
+        if not rooms:
+            rooms = await get_rooms(biliapi)
         level = intimacy = 0
-        try:
-            ret = await biliapi.get_home_medals()
-            if ret["code"] == 0 and ret["data"]["cnt"] > 0:
-                for x in ret["data"]["list"]:
-                    if x["level"] > level or (x["level"] == level and x["intimacy"] > intimacy):
-                        accinfo = await biliapi.accInfo(x["target_id"])
-                        if accinfo["code"] == 0 and accinfo["data"]["live_room"]["liveStatus"] == 1:
-                            room_id = accinfo["data"]["live_room"]["roomid"]
-                            level = x["level"]
-                            intimacy = x["intimacy"]
-            else:
-                logging.info(f'{biliapi.name}: 获取直播间失败，跳过直播心跳。(建议手动指定直播间)')
-                return
-        except Exception as e:
-            logging.info(f'{biliapi.name}: 获取直播间异常，原因为{str(e)}，跳过直播心跳。(建议手动指定直播间)')
-            return
+        for roominfo in rooms:
+            if roominfo[2] > level or (level == roominfo[2] and roominfo[3] > intimacy) and roominfo[1] == 1:
+                room_id = roominfo[0]
+                level = roominfo[2]
+                intimacy = roominfo[3]
 
-        if not room_id:
-            logging.info(f'{biliapi.name}: 没有领取过勋章且在线的直播间，跳过直播心跳。(建议手动指定直播间)')
-            return
+    if not room_id > 0:
+        logging.info(f'{biliapi.name}: 没有获取到需要心跳的房间，跳过直播心跳')
+        return
 
     try:
         ret = await biliapi.xliveGetRoomInfo(room_id)
@@ -82,11 +88,19 @@ class xliveHeartBeat:
 
     async def _encParam(self) -> str:
         '''加密参数'''
-        url = 'http://116.85.43.27:3000/enc'
-        #url = 'http://www.madliar.com:6000/enc' #备用地址
-        async with aiohttp.request("post", url=url, json={"t":self._data, "r":self._secret_rule}) as r:
-            ret = await r.json()
-        return ret["s"]
+        urls = ('http://116.85.43.27:3000/enc', 'http://www.madliar.com:6000/enc')
+        s = ''
+        for url in urls:
+            try:
+                async with aiohttp.request("post", url=url, json={"t":self._data, "r":self._secret_rule}) as r:
+                    ret = await r.json()
+            except Exception as e:
+                logging.warning(f'{biliapi.name}: 直播心跳获取加密参数异常，原因为{str(e)}')
+            else:
+                if 's' in ret:
+                    s = ret["s"]
+                    break
+        return s
 
     def __aiter__(self):
         return self
@@ -114,3 +128,30 @@ class xliveHeartBeat:
                 self._secret_rule = ret["data"]["secret_rule"]
                 self._data["id"][2] += 1
             return ret["code"], ret["message"], ret["data"]["heartbeat_interval"]
+
+
+
+async def get_rooms(biliapi: asyncbili):
+    '''获取所有勋章房间'''
+    result = []
+    try:
+        ret = await biliapi.get_home_medals()
+    except Exception as e:
+        logging.warning(f'{biliapi.name}: 获取有勋章的直播间异常，原因为{str(e)}')
+        return result
+
+    if ret["code"] == 0 and ret["data"]["cnt"] > 0:
+        for x in ret["data"]["list"]:
+            try:
+                accinfo = await biliapi.accInfo(x["target_id"])
+            except Exception as e:
+                logging.warning(f'{biliapi.name}: 查询up主{x["target_id"]}的信息异常，原因为{str(e)}')
+            else:
+                if accinfo["code"] == 0:
+                    result.append((accinfo["data"]["live_room"]["roomid"], accinfo["data"]["live_room"]["liveStatus"], x["level"], x["intimacy"]))
+                else:
+                    logging.warning(f'{biliapi.name}: 查询up主{x["target_id"]}的信息失败，信息为{accinfo["message"]}')
+    else:
+        logging.info(f'{biliapi.name}: 获取有勋章的直播间失败，可能是没有勋章，{ret["message"]}')
+
+    return result

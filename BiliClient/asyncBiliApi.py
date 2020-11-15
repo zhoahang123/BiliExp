@@ -334,6 +334,39 @@ class asyncBiliApi(object):
             ret = await r.json()
         return ret
 
+    async def xliveMsgSend(self, 
+                           roomid: int,
+                           msg: str,
+                           color: int = 16777215,
+                           fontsize: int = 25,
+                           mode: int = 1,
+                           bubble: int = 0,
+                           ) -> dict:
+        '''
+        直播间发送消息
+        roomid int 直播间id
+        msg str 要发送的消息
+        color int 字体颜色
+        fontsize int 字体大小
+        mode int 发送模式，应该是控制滚动，底部这些
+        bubble int 未知
+        '''
+        url = 'https://api.live.bilibili.com/msg/send'
+        post_data = {
+            "color": color,
+            "fontsize": fontsize,
+            "mode": mode,
+            "msg": msg,
+            "rnd": int(time.time()),
+            "roomid": roomid,
+            "bubble": bubble,
+            "csrf_token": self._bili_jct,
+            "csrf": self._bili_jct
+            }
+        async with self._session.post(url, data=post_data, verify_ssl=False) as r:
+            ret = await r.json()
+        return ret
+
     async def xliveBp2Gold(self, 
                            num: int = 5, 
                            platform: str = 'pc'
