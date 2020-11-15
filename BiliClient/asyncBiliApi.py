@@ -334,6 +334,66 @@ class asyncBiliApi(object):
             ret = await r.json()
         return ret
 
+    async def xliveFansMedal(self, 
+                           page: int = 1,
+                           pageSize: int = 10,
+                           ) -> dict:
+        '''
+        获取粉丝牌
+        page int 直播间id
+        pageSize int 字体颜色
+        '''
+        url = f'https://api.live.bilibili.com/fans_medal/v5/live_fans_medal/iApiMedal?page={page}&pageSize={pageSize}'
+        async with self._session.get(url, verify_ssl=False) as r:
+            ret = await r.json()
+        return ret
+
+    async def xliveAnchorCheck(self,
+                               roomid: int
+                               ) -> dict:
+        '''
+        查询直播天选时刻
+        roomid int 真实房间id，非短id
+        '''
+        url = f'https://api.live.bilibili.com/xlive/lottery-interface/v1/Anchor/Check?roomid={roomid}'
+        async with self._session.get(url, verify_ssl=False) as r:
+            ret = await r.json()
+        return ret
+
+    async def xliveAnchorJoin(self,
+                              id: int,
+                              gift_id: int,
+                              gift_num: int,
+                              platform: str = 'pc'
+                              ) -> dict:
+        '''
+        参与直播天选时刻
+        id int 天选时刻id
+        gift_id int 礼物id
+        gift_num int 礼物数量
+        '''
+        url = 'https://api.live.bilibili.com/xlive/lottery-interface/v1/Anchor/Join'
+        post_data = {
+            "id": id,
+            "gift_id": gift_id,
+            "gift_num": gift_num,
+            "platform": platform,
+            "csrf_token": self._bili_jct,
+            "csrf": self._bili_jct
+            }
+        async with self._session.post(url, data=post_data, verify_ssl=False) as r:
+            ret = await r.json()
+        #{"code":400,"data":null,"message":"余额不足","msg":"余额不足"}
+        return ret
+
+    async def xliveFeedHeartBeat(self) -> dict:
+        '''直播心跳 feed'''
+        url = 'https://api.live.bilibili.com/relation/v1/Feed/heartBeat'
+        async with self._session.get(url, verify_ssl=False) as r:
+            ret = await r.json()
+        #{"code":0,"msg":"success","message":"success","data":{"open":1,"has_new":0,"count":0}}
+        return ret
+
     async def xliveMsgSend(self, 
                            roomid: int,
                            msg: str,
