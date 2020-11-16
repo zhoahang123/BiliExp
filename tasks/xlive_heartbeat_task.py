@@ -10,15 +10,25 @@ async def xlive_heartbeat_task(biliapi: asyncbili,
     if send_msg:
         rooms = await get_rooms(biliapi)
         for roominfo in rooms:
-            try:
-                ret = await biliapi.xliveMsgSend(roominfo[0], send_msg)
-            except Exception as e:
-                logging.warning(f'{biliapi.name}: 直播在房间{roominfo[0]}发送信息异常，原因为{str(e)}')
-            else:
-                if ret["code"] == 0:
-                    logging.info(f'{biliapi.name}: 直播在房间{roominfo[0]}发送信息成功')
+            retry = 3
+            while retry:
+                try:
+                    ret = await biliapi.xliveMsgSend(roominfo[0], send_msg)
+                except Exception as e:
+                    logging.warning(f'{biliapi.name}: 直播在房间{roominfo[0]}发送信息异常，原因为{str(e)}，重试')
+                    retry -= 1
                 else:
-                     logging.warning(f'{biliapi.name}: 直播在房间{roominfo[0]}发送信息失败，消息为{ret["message"]}')
+                    if ret["code"] == 0:
+                        if ret["message"] == '':
+                            logging.info(f'{biliapi.name}: 直播在房间{roominfo[0]}发送信息成功')
+                            break
+                        else:
+                            logging.warning(f'{biliapi.name}: 直播在房间{roominfo[0]}发送信息，消息为{ret["message"]}，重试')
+                            retry -= 1
+                            await asyncio.sleep(3)
+                    else:
+                         logging.warning(f'{biliapi.name}: 直播在房间{roominfo[0]}发送信息失败，消息为{ret["message"]}，跳过')
+                         break
 
     num: int = task_config.get("num", 0)
     if not num:
