@@ -75,7 +75,7 @@ def initlog(log_file: str, log_console: bool, log_stream: bool):
         strio_handler.setFormatter(formatter2)
         logger.addHandler(strio_handler)
     if log_file:
-         file_handler = logging.FileHandler(log_file)#输出到日志文件
+         file_handler = logging.FileHandler(log_file, encoding='utf-8')#输出到日志文件
          file_handler.setFormatter(formatter1)
          logger.addHandler(file_handler)
 
