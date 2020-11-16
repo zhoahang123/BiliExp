@@ -33,7 +33,7 @@ BiliExp-Actions
 	   
        <div align="center"><img src="https://s1.ax1x.com/2020/09/23/wjM09e.png" width="800" height="450" title="获取cookies示例"></div>
     *  1.2 fork本项目
-* 2.简单部署(与3.复杂部署二选一)
+* 2.简单部署(与3.复杂部署二选一，有json基础的推荐使用复杂部署而不是本项)
     *  2.1 在fork后的github仓库的 “Settings” --》“Secrets” 中添加"Secrets"，name(不用在意大小写)和value分别为：
         *  2.1.1 name为"biliconfig"           value为B站账号登录信息(可多个)，格式如下
         ```
@@ -77,9 +77,9 @@ BiliExp-Actions
 		5. 风纪委员投票功能的启用与详细配置，简单部署不启用此功能
 		6. 直播心跳获取小心心功能的启用与详细配置，简单部署不启用此功能
         ```
-    
+
 * 3.复杂部署与本地部署(与2.简单部署二选一)
-    *  3.1 进入config文件夹，按照说明配置config.json文件(***不保存到仓库**)
+    *  3.1 进入config文件夹，按照说明配置config.json文件(***不保存到仓库***)，建议先看[配置文件说明](../master/config#目录)
     *  3.2 在fork后的github仓库的 “Settings” --》“Secrets” 中添加"Secrets"，name和value分别为：
         *  3.2.1 name为"advconfig"(注意不是上面的biliconfig)     value为3.1步骤配置好的config.json文件(直接把整个文件复制到这里)
     *  3.3 同上面2.2配置
