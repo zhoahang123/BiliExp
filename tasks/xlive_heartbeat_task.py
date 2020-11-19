@@ -91,25 +91,23 @@ class xliveHeartBeat:
 async def get_rooms(biliapi: asyncbili):
     '''获取所有勋章房间'''
     result = []
-    try:
-        ret = await biliapi.get_home_medals()
-    except Exception as e:
-        logging.warning(f'{biliapi.name}: 获取有勋章的直播间异常，原因为{str(e)}')
-        return result
-
-    if ret["code"] == 0 and ret["data"]["cnt"] > 0:
-        for x in ret["data"]["list"]:
-            try:
-                accinfo = await biliapi.accInfo(x["target_id"])
-            except Exception as e:
-                logging.warning(f'{biliapi.name}: 查询up主{x["target_id"]}的信息异常，原因为{str(e)}')
+    page = 1
+    while True:
+        try:
+            ret = await biliapi.xliveFansMedal(page, 50)
+        except Exception as e:
+            logging.warning(f'{biliapi.name}: 获取有勋章的直播间异常，原因为{str(e)}')
+            break
+        else:
+            if ret["code"] == 0:
+                if not ret["data"]["fansMedalList"]:
+                    break
+                for medal in ret["data"]["fansMedalList"]:
+                    result.append((medal["roomid"], medal["status"], medal["level"], medal["intimacy"], medal["is_lighted"]))
             else:
-                if accinfo["code"] == 0:
-                    result.append((accinfo["data"]["live_room"]["roomid"], accinfo["data"]["live_room"]["liveStatus"], x["level"], x["intimacy"]))
-                else:
-                    logging.warning(f'{biliapi.name}: 查询up主{x["target_id"]}的信息失败，信息为{accinfo["message"]}')
-    else:
-        logging.info(f'{biliapi.name}: 获取有勋章的直播间失败，可能是没有勋章，{ret["message"]}')
+                logging.warning(f'{biliapi.name}: 获取有勋章的直播间失败，信息为{ret["message"]}')
+                break
+            page += 1
 
     return result
 
@@ -118,8 +116,11 @@ async def send_msg_task(biliapi: asyncbili,
                         msg: str
                         ):
     for roominfo in rooms:
+        if roominfo[4] == 1:
+            continue
         retry = 3
         while retry:
+            await asyncio.sleep(3)
             try:
                 ret = await biliapi.xliveMsgSend(roominfo[0], msg)
             except Exception as e:
@@ -136,8 +137,6 @@ async def send_msg_task(biliapi: asyncbili,
                 else:
                     logging.warning(f'{biliapi.name}: 直播在房间{roominfo[0]}发送信息失败，消息为{ret["message"]}，跳过')
                     break
-            await asyncio.sleep(3)
-        await asyncio.sleep(3)
 
 async def heartbeat_task(biliapi: asyncbili,
                          room_id: int,
