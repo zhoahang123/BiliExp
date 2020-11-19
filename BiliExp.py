@@ -62,7 +62,7 @@ def initlog(log_file: str, log_console: bool, log_stream: bool):
     '''初始化日志参数'''
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
-    formatter1 = logging.Formatter("[%(levelname)s]; %(message)s")
+    formatter1 = logging.Formatter("[%(levelname)s]: %(message)s")
     if log_console:
         console_handler = logging.StreamHandler(stream=sys.stdout) #输出到控制台
         console_handler.setFormatter(formatter1)

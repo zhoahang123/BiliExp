@@ -1,12 +1,23 @@
 from BiliClient import asyncbili
-import asyncio, logging
+import asyncio, logging, json
 
 activity_task_lock = asyncio.Lock()
+activity_task_path = {}
 async def activity_task(biliapi: asyncbili,
                         task_config: dict
                         ) -> None:
+    activity_list = []
+    if 'path' in task_config:
+        if task_config["path"] in activity_task_path:
+            activity_list.extend(activity_task_path[task_config["path"]])
+        else:
+            with open(task_config["path"], 'r', encoding='utf-8') as fp:
+                activity_task_path[task_config["path"]] = json.load(fp)
+            activity_list.extend(activity_task_path[task_config["path"]])
+    if 'activities' in task_config:
+        activity_list.extend(task_config["activities"])
 
-    for x in task_config["activities"]:
+    for x in activity_list:
         for y in range(2, 5):
             try:
                 await biliapi.activityAddTimes(x["sid"], y) #执行增加抽奖次数操作,一般是分享转发
