@@ -8,6 +8,7 @@ async def xlive_heartbeat_task(biliapi: asyncbili,
     rooms = None
     send_msg = task_config.get("send_msg", "")
     num: int = task_config.get("num", 0)
+    max_time: float = task_config.get("time", 25)
     room_id: int = task_config.get("room_id", 0)
     tasks = []
 
@@ -27,7 +28,7 @@ async def xlive_heartbeat_task(biliapi: asyncbili,
                     intimacy = roominfo[3]
 
         if room_id > 0:
-            tasks.append(heartbeat_task(biliapi, room_id, num))
+            tasks.append(heartbeat_task(biliapi, room_id, num, max_time * 60))
         else:
             logging.info(f'{biliapi.name}: 没有获取到需要心跳的房间，跳过直播心跳')
 
@@ -140,7 +141,8 @@ async def send_msg_task(biliapi: asyncbili,
 
 async def heartbeat_task(biliapi: asyncbili,
                          room_id: int,
-                         num: int
+                         num: int,
+                         max_time: float
                          ):
     try:
         ret = await biliapi.xliveGetRoomInfo(room_id)
@@ -161,18 +163,23 @@ async def heartbeat_task(biliapi: asyncbili,
         return
 
     ii = 0
+    ltime = 0
     try:
         async for code, message, wtime in xliveHeartBeat(biliapi, buvid, parent_area_id, area_id, room_id): #每一次迭代发送一次心跳
             if code != 0:
                 logging.warning(f'{biliapi.name}: 直播心跳错误，原因为{message}，跳过直播心跳')
                 return
             ii += 1
-            if ii < num:
+            ltime += wtime
+            if ii >= num:
+                logging.info(f'{biliapi.name}: 成功在id为{room_id}的直播间发送完{ii}次心跳，退出直播心跳(达到最大心跳次数)')
+                break
+            elif ltime >= max_time:
+                logging.info(f'{biliapi.name}: 成功在id为{room_id}的直播间发送完{ii}次心跳，退出直播心跳(达到最大心跳时间)')
+                break
+            else:
                 logging.info(f'{biliapi.name}: 成功在id为{room_id}的直播间发送第{ii}次心跳')
                 await asyncio.sleep(wtime) #等待wtime秒进行下一次迭代
-            else:
-                logging.info(f'{biliapi.name}: 成功在id为{room_id}的直播间发送完{ii}次心跳，退出直播心跳')
-                break
     
     except Exception as e:
         logging.warning(f'{biliapi.name}: 直播心跳异常，原因为{str(e)}，退出直播心跳')
