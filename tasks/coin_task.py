@@ -138,6 +138,8 @@ async def get_up_video_ids(biliapi: asyncbili,
     if ret["code"]:
         logging.info(f'{biliapi.name}: 投币获取up主{upid}的视频失败，信息为:{ret["message"]}')
         return
+    if not 'count' in ret["data"]["page"]:
+        return
     pnum = ret["data"]["page"]["count"] // 100
     if ret["data"]["page"]["count"] % 100 > 0:
         pnum += 1
@@ -165,7 +167,9 @@ async def get_up_article_ids(biliapi: asyncbili,
     pn = 1
     ret = await biliapi.spaceArticle(uid=upid, pn=pn)
     if ret["code"]:
-        logging.info(f'{biliapi.name}: 投币获取up主{upid}的视频失败，信息为:{ret["message"]}')
+        logging.info(f'{biliapi.name}: 投币获取up主{upid}的专栏失败，信息为:{ret["message"]}')
+        return
+    if not 'count' in ret["data"]:
         return
     pnum = ret["data"]["count"] // 30
     if ret["data"]["count"] % 30 > 0:
