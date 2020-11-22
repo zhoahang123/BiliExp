@@ -235,6 +235,27 @@ class asyncBiliApi(object):
             ret = await r.json()
         return ret
 
+    async def getMyGroups(self) -> dict:
+        '''取应援团列表'''
+        url = "https://api.vc.bilibili.com/link_group/v1/member/my_groups"
+        async with self._session.get(url, verify_ssl=False) as r:
+            ret = await r.json()
+        return ret
+
+    async def groupSign(self,
+                        group_id: int,
+                        owner_id: int
+                        ) -> dict:
+        '''
+        应援团签到
+        group_id int 应援团id
+        owner_id int 应援团所有者uid
+        '''
+        url = f'https://api.vc.bilibili.com/link_setting/v1/link_setting/sign_in?group_id={group_id}&owner_id={owner_id}'
+        async with self._session.get(url, verify_ssl=False) as r:
+            ret = await r.json()
+        return ret
+
     async def getRelationTags(self) -> dict:
         '''取关注用户分组列表'''
         url = "https://api.bilibili.com/x/relation/tags"

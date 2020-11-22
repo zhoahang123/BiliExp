@@ -124,6 +124,6 @@ if __name__=="__main__":
             print('BliExp -c <configfile> -l <logfile>')
             sys.exit()
         elif opt == '-v':
-            print('BiliExp v1.0.0')
+            print('BiliExp v1.1.5')
             sys.exit()
     main(**kwargs)

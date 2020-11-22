@@ -13,6 +13,7 @@
                 如果要B币劵兑换漫画漫读劵请使用站友日任务 */
             }
         },
+        "group_sign_task": true, /* 应援团签到 */
         "xliveSign_task": true, /* 直播签到 */
         "xlive_bag_send_task": true, /* 送出即将到期的礼物 */
         "xlive_heartbeat_task": { /* 发送直播心跳，获得小心心(费时，不建议在云函数使用，多账户同时开启用时不叠加) */

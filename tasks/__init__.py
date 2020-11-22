@@ -1,4 +1,4 @@
-__version__ = '1.1.2'
+__version__ = '1.1.5'
 
 from .activity_task import activity_task as activity_task
 from .clean_dynamic_task import clean_dynamic_task as clean_dynamic_task
@@ -13,6 +13,7 @@ from .manga_vip_reward_task import manga_vip_reward_task as manga_vip_reward_tas
 from .share_task import share_task as share_task
 from .silver2coin_task import silver2coin_task as silver2coin_task
 from .vip_task import vip_task as vip_task
+from .group_sign_task import group_sign_task as group_sign_task
 from .watch_task import watch_task as watch_task
 from .xlive_bag_send_task import xlive_bag_send_task as xlive_bag_send_task
 from .xliveSign_task import xliveSign_task as xliveSign_task
@@ -33,6 +34,7 @@ __all__ = (
     'share_task',
     'silver2coin_task',
     'vip_task',
+    'group_sign_task',
     'watch_task',
     'xlive_bag_send_task',
     'xliveSign_task',
