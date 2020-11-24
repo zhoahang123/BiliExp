@@ -160,9 +160,10 @@
                 "params": { /* 请求参数 */
                     "text": "{title}",
                     "desp": "{msg_simple}" 
-                } /* 需要其他消息推送方式请在下方自定义 */
-            }/* ,
+                } 
+            },
             {
+            	"enable": false,
                 "name": "邮箱消息推送",
                 "msg_separ": "<br>",
                 "method": 0,
@@ -174,6 +175,7 @@
                 }
             },
             {
+            	"enable": false,
                 "name": "telegram_bot消息推送",
                 "method": 1,
                 "url": "https://api.telegram.org/bot{telegram_bot_token}/sendMessage",
@@ -181,7 +183,7 @@
                     "chat_id": "{telegram_bot_chatid}",
                     "text": "{msg_simple}"
                 }
-            }*/
+            }
         ]
     },
     "log_file": "BiliExp.log",/* 日志文件，不输出请留空 */
