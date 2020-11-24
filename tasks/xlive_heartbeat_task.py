@@ -58,7 +58,7 @@ class xliveHeartBeat:
                 async with aiohttp.request("post", url=url, json={"t":self._data, "r":self._secret_rule}) as r:
                     ret = await r.json()
             except Exception as e:
-                logging.warning(f'{biliapi.name}: 直播心跳获取加密参数异常，原因为{str(e)}')
+                logging.warning(f'{self._biliapi.name}: 直播心跳获取加密参数异常，原因为{str(e)}')
             else:
                 if 's' in ret:
                     s = ret["s"]
