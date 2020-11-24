@@ -58,12 +58,14 @@ BiliExp-Actions
         ```
 		注：每行一个cookie项(SESSDATA bili_jct uid或者空行)，***不规定顺序***但必须一个账户三个参数填完才能填下一个账户的参数
 		![image](https://user-images.githubusercontent.com/67217225/98549976-73700900-22d6-11eb-9356-22802456da50.png)
-        *  2.1.2 (可选)name为"push_message"           value为推送SCKEY或email用于消息推送，格式如下
+        *  2.1.2 (可选)name为"push_message"           value为推送SCKEY或email或telegramBot_token用于消息推送，格式如下
         ```
         SCU10xxxxxxxxxxxxxxxd547519b62d027xxxxxxxxx20f3578cbe6
 		example@qq.com
+		1443793198:AAEI9TGazdrj4Jh6X6B7CvuAKX4IivEb450,1459469720
         ```
-		注：每行一个推送参数(SCKEY email或者空行)，***不规定顺序***并且可以只选填其中一项。(填多个SCKEY或email只推送最后一个)
+		注：每行一个推送参数(SCKEY email telegramBot_token或者空行)，***可以同时提供多个或不提供SCKEY或email或telegramBot_token，填写后会同时推送***,<br>
+		***使用telegramBot的注意，除了填写token,还要填写chat_id,在同一行用逗号隔开***,比如例子提供的意思是telegram token为`1443793198:AAEI9TGazdrj4Jh6X6B7CvuAKX4IivEb450`,chat_id为`1459469720`
     *  2.2 添加完上面的"Secrets"后，进入"Actions" --》"run BiliExp"，点击右边的"Run workflow"即可第一次启动
         *  2.2.1 首次fork可能要去actions(正上方的actions不是Settings里面的actions)里面同意使用actions条款，如果"Actions"里面没有"run BiliExp"，点一下右上角的"star"，"run BiliExp"就会出现在"Actions"里面
 		![image](https://user-images.githubusercontent.com/67217225/98933791-16659480-251c-11eb-9713-c3dbcc6321bf.png)
