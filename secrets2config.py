@@ -18,7 +18,7 @@ if not (BILICONFIG or ADVCONFIG):
     exit(-1)
 
 with open('./config/config.json','r',encoding='utf-8') as fp:
-    configData: dict = json.loads(re.sub(r'\/\*[\s\S]*?\/', '', fp.read()), object_pairs_hook=OrderedDict)
+    configData: dict = json.loads(re.sub(r'\/\*[\s\S]*?\*\/', '', fp.read()), object_pairs_hook=OrderedDict)
 
 if BILICONFIG:
     SESSDATA, bili_jct, DedeUserID = False, False, False

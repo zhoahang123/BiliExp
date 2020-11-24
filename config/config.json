@@ -161,7 +161,7 @@
                     "text": "{title}",
                     "desp": "{msg_simple}" 
                 } 
-            },
+            }/*,
             {
             	"enable": false,
                 "name": "邮箱消息推送",
@@ -183,7 +183,7 @@
                     "chat_id": "{telegram_bot_chatid}",
                     "text": "{msg_simple}"
                 }
-            }
+            }*/
         ]
     },
     "log_file": "BiliExp.log",/* 日志文件，不输出请留空 */
