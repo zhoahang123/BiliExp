@@ -2,6 +2,7 @@
  本文件非标准json格式，仅支持这种注释方式，注释可以不用删除但一定不能嵌套
  可以调整同级配置项的先后顺序来调整执行优先级，前面的任务先启动但不一定先完成 */
 {
+    "version": "1.1.6", /* 配置文件版本,严禁修改 */
     "default": { /* 注意！！下列任何一项任务配置，值设置为true才为启用(enable参数)，将值设置为false或者直接删除就可以关闭任务*/
         "vip_task": { /* 1号领取大会员B币劵优惠券，28号花费剩余B币劵 */
             "enable": true,
@@ -22,7 +23,6 @@
             "num": 5, /* 心跳次数，每次(第1次除外)需要5分钟并获得1个小心心(每天最高24个小心心)，与time参数满足任一条件都会停止心跳 */
             "time": 25, /* 心跳分钟数(允许带小数)，心跳的时间，与num参数满足任一条件都会停止心跳 */
             "send_msg": "" /* 每次执行向所有带勋章的直播间发送消息，为空则不发送 */
-            /* 不知道可不可以在多个直播间同时在线更快得获取小心心，有老哥试过吗？ */
         },
         "xlive_anchor_task": { /* 参与直播天选时刻，新加的还没有过滤功能 */
             "enable": false,
@@ -81,7 +81,7 @@
             "reply": ["从未中奖，从未放弃[doge]", "支持支持"],/* 回复原动态评论，随机抽一个 */
             "repost": ["从未中奖，从未放弃[doge]", "支持支持"],/* 转到自己动态的评论，随机抽一个 */
             "keywords": ["#互动抽奖#", "#抽奖#", ".*(转|抽|评).*(转|抽|评).*(转|抽|评).*"], /* 关键字转发，支持正则表达式匹配 */
-            "delay": [3, 6], /* 随机延时3-5秒转发 */
+            "delay": [4, 6], /* 随机延时4-6秒转发 */
        /*----------------- 跟踪转发模式------------------- */
             "repost_by_others": [],
             "force_follow": false /* 是否强制关注抽奖up主 */
@@ -118,68 +118,20 @@
         "manga_auto_buy_task": {/* 自动花费即将过期的漫读劵 */
             "enable": false,
             "mode": 1,
-            /* mode为1，自动购买追漫列表的漫画，mode为2，参见下面filter参数 */
+            /* mode为1，自动购买追漫列表的漫画，mode为2，购买filter参数中的指定漫画 */
             "filter": "25900|1-30,35,55;25966|5,15,35-"
-            /* filter为购买指定的漫画，上述例子的意思是购买漫画id为25900漫画
-               的1-30章，35章和55章；购买漫画id为25966的漫画5章，15章，35章
-               到最后一章。
-               注意参数决定购买优先级，番外同样算1章
-             */
         },
-        "judgement_task": { /*  风纪委员投票(每次运行投当前所有案件) */
+        "judgement_task": { /*  风纪委员投票(每次运行头当前所有案件) */
             "enable": false, /*  对风纪委员投票不了解的请不要开启本功能 */
             "baiduNLP": { /*  百度语言情感分析，直接影响params参数中vote值 */
                 "confidence": 0.6, /*  置信系数门限 */
                 "negative_prob": 0.6, /*  积极概率门限 */
                 "positive_prob": 0.7  /*  消极概率门限 */
             },
-            "params": {    /* 投票参数，参见下面参数说明 */
+            "params": {    /* 投票参数 */
                 "vote": 4,
                 "attr": 0
             }
-        /*
-         params内参数说明，以下均为可选参数，非必须配置
-        vote 整数 投票类型 0 未投票；1 封禁；2 否；3 弃权；4 删除
-        content 字符串 理由
-        likes 整数数组，支持的观点
-        hates 整数数组，反对的观点
-        attr 整数 是否匿名 0 匿名；1 不匿名
-        apply_type 整数 是否更改原因 0 保持原来原因；1 投票给新原因
-        origin_reason 整数 原始原因，参见下面原因列表
-        apply_reason 整数 新原因，参见下面原因列表
-            1 刷屏
-            2 抢楼
-            3 发布色情低俗信息
-            4 发布赌博诈骗信息
-            5 发布违禁相关信息
-            6 发布垃圾广告信息
-            7 发布人身攻击言论
-            8 发布侵犯他人隐私信息
-            9 发布引战言论
-            10 发布剧透信息
-            11 恶意添加无关标签
-            12 恶意删除他人标签
-            13 发布色情信息
-            14 发布低俗信息
-            15 发布暴力血腥信息
-            16 涉及恶意投稿行为
-            17 发布非法网站信息
-            18 发布传播不实信息
-            19 发布怂恿教唆信息
-            20 恶意刷屏
-            21 账号违规
-            22 恶意抄袭
-            23 冒充自制原创
-            24 发布青少年不良内容
-            25 破坏网络安全
-            26 发布虚假误导信息
-            27 仿冒官方认证账号
-            28 发布不适宜内容
-            29 违反运营规则
-            30 恶意创建话题
-            31 发布违规抽奖
-            32 恶意冒充他人
-        */
         },
         "activity_task": { /* B站转盘抽奖活动 */
             "enable": true,
@@ -187,10 +139,55 @@
             "activities": [] /* B站转盘抽奖列表 */
         }
     },
+    "webhook": { /* 用于自定义消息推送 */
+        "http_header": {"User-Agent":"Mozilla/5.0"}, /* 定义http头部 */
+        "variable": { /* 声明任意变量,在hooks参数中的url参数和params参数中使用大括号{}可直接引用在此声明的变量 */
+            "msg_simple": null, /* 简化的日志消息，下面msg_raw为完整日志消息，用于下面hooks消息推送接口引用 */
+         /*   "msg_raw": null, */
+            "title": "B站经验脚本消息推送",
+            "SCKEY": "",
+            "email": "",
+            "telegram_bot_token": "",
+            "telegram_bot_chatid": ""
+        },
+        "hooks": [ /* 在这里定义所有消息推送回调接口 */
+            {
+                "enable": false, /* 开关，需要开启请直接把本项删除或设置为true */
+                "name": "server酱消息推送", /* webhook名称 */
+                "msg_separ": "\n\n", /* 消息分隔符 */
+                "method": 1, /* 请求方式,0为get,1为post */
+                "url": "https://sc.ftqq.com/{SCKEY}.send", /* 请求地址,{SCKEY}为对上面variable变量中的SCKEY的引用 */
+                "params": { /* 请求参数 */
+                    "text": "{title}",
+                    "desp": "{msg_simple}" 
+                }
+            },
+            {
+                "enable": false,
+                "name": "邮箱消息推送",
+                "msg_separ": "<br>",
+                "method": 0,
+                "url": "http://liuxingw.com/api/mail/api.php",
+                "params": {
+                    "address": "{email}",
+                    "name": "{title}",
+                    "certno": "{msg_simple}" 
+                }
+            },
+            {
+                "enable": true,
+                "name": "telegram_bot消息推送",
+                "method": 1,
+                "url": "https://api.telegram.org/bot{telegram_bot_token}/sendMessage",
+                "params": {
+                    "chat_id": "{telegram_bot_chatid}",
+                    "text": "{msg_simple}"
+                }
+            }
+        ]
+    },
     "log_file": "BiliExp.log",/* 日志文件，不输出请留空 */
     "log_console": true,/* 是否把日志输出到控制台 */
-    "email": "",/* 邮箱，消息推送用，不用请留空 */
-    "SCKEY": "",/* SCKEY，微信消息推送用，不用请留空 */
     "users": [{/* users为用户数组，每个账户包含一个cookieDatas和tasks参数 */
         "cookieDatas": {/* 下面三项参数为必填参数(DedeUserID在但账户情况下选填，仅用于区分账户)，获取方式见说明 */
             "SESSDATA": "账号SESSDATA",

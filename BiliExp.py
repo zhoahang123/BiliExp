@@ -5,20 +5,66 @@ from getopt import getopt
 from BiliClient import asyncbili
 import tasks
 
-def push_message(SCKEY=None,
-                 email=None
-                 ) -> None:
+main_version = (1, 1, 6)
+main_version_str = '.'.join(map(str, main_version))
 
-    log = log_stream_io.getvalue()
-    import urllib
-    if SCKEY:
-        data_string = urllib.parse.urlencode({"text": "B站经验脚本消息推送","desp": log.replace("\n","\n\n")})
-        urllib.request.urlopen(f'https://sc.ftqq.com/{SCKEY}.send', data=data_string.encode())
-    if email:
-        data_string = urllib.parse.urlencode({"address":email, "name": "B站经验脚本消息推送", "certno": log.replace("\n","<br>")})
-        #这辣鸡接口居然还要User-Agent才能访问....
-        req = urllib.request.Request(url=f'http://liuxingw.com/api/mail/api.php?{data_string}', headers={"User-Agent":"Mozilla/5.0"})
-        urllib.request.urlopen(req)
+def version_compare(version: str):
+    ver = tuple(map(int, version.strip().split('.')))
+    for ii in range(len(main_version)):
+        if ver[ii] < main_version[ii]:
+            return False
+    return True
+
+def initlog(log_file: str, log_console: bool, msg_raw: bool = False):
+    '''初始化日志参数'''
+    logger_raw = logging.getLogger()
+    logger_raw.setLevel(logging.INFO)
+    formatter1 = logging.Formatter("[%(levelname)s]: %(message)s")
+    if log_file:
+        try:
+             file_handler = logging.FileHandler(log_file, encoding='utf-8')#输出到日志文件
+             file_handler.setFormatter(formatter1)
+             logger_raw.addHandler(file_handler)
+        except:
+            pass
+    if log_console:
+        console_handler = logging.StreamHandler(stream=sys.stdout) #输出到控制台
+        console_handler.setFormatter(formatter1)
+        logger_raw.addHandler(console_handler)
+    formatter2 = logging.Formatter("%(message)s")
+    if msg_raw:
+        log_raw = io.StringIO() #用于记录完整日志
+        strio_handler = logging.StreamHandler(stream=log_raw) #输出到log_raw用于消息推送
+        strio_handler.setFormatter(formatter2)
+        logger_raw.addHandler(strio_handler)
+        return log_raw
+    return None
+
+def init_message(configData: dict):
+    '''初始化消息推送'''
+    if 'webhook' in configData and 'variable' in configData["webhook"]:
+        tasks.webhook.set(configData["webhook"])
+        if 'msg_raw' in configData["webhook"]["variable"]:
+            log_raw = initlog(configData["log_file"], configData["log_console"], True)
+            tasks.webhook.addMsgStream('msg_raw', log_raw)
+        else:
+            initlog(configData["log_file"], configData["log_console"])
+        if 'msg_simple' in configData["webhook"]["variable"]:
+            tasks.webhook.addMsgStream('msg_simple')
+    else:
+        initlog(configData["log_file"], configData["log_console"])
+
+async def start(configData: dict):
+    '''开始任务'''
+    config_version = configData.get('version', '1.0.0')
+    if version_compare(config_version):
+        logging.info(f'当前程序版本为v{main_version_str},配置文件版本为v{config_version}')
+    else:
+        logging.warning(f'当前程序版本为v{main_version_str},配置文件版本为v{config_version},可更新配置文件')
+        tasks.webhook.addMsg('msg_simple', '有新版本配置文件可供使用\n')
+
+    await asyncio.wait([run_user_tasks(user, configData["default"]) for user in configData["users"]]) #执行任务
+    await tasks.webhook.send() #推送消息
 
 async def run_user_tasks(user: dict,           #用户配置
                          default: dict          #默认配置
@@ -58,27 +104,6 @@ async def run_user_tasks(user: dict,           #用户配置
         if task_array:
             await asyncio.wait(task_array)        #异步等待所有任务完成
 
-def initlog(log_file: str, log_console: bool, log_stream: bool):
-    '''初始化日志参数'''
-    logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
-    formatter1 = logging.Formatter("[%(levelname)s]: %(message)s")
-    if log_console:
-        console_handler = logging.StreamHandler(stream=sys.stdout) #输出到控制台
-        console_handler.setFormatter(formatter1)
-        logger.addHandler(console_handler)
-    if log_stream:
-        global log_stream_io #全局变量
-        log_stream_io = io.StringIO() #用于记录日志
-        strio_handler = logging.StreamHandler(stream=log_stream_io) #输出到log_stream用于消息推送
-        formatter2 = logging.Formatter("%(message)s")
-        strio_handler.setFormatter(formatter2)
-        logger.addHandler(strio_handler)
-    if log_file:
-         file_handler = logging.FileHandler(log_file, encoding='utf-8')#输出到日志文件
-         file_handler.setFormatter(formatter1)
-         logger.addHandler(file_handler)
-
 def main(*args, **kwargs):
     if 'config' in kwargs:
         config = kwargs["config"]
@@ -92,25 +117,13 @@ def main(*args, **kwargs):
         sys.exit(6)
 
     if 'log' in kwargs:
-        logfile = kwargs["log"]
-    else:
-        logfile = configData["log_file"]
-    try:
-        is_push_message = bool(configData["email"] or configData["SCKEY"])
-        initlog(logfile, configData["log_console"], is_push_message)
-    except Exception as e: 
-        print(f'日志配置异常，原因为{str(e)}')
+        configData["log_file"] = kwargs["log"]
+
+    init_message(configData) #初始化消息推送
 
     #启动任务
     loop = asyncio.get_event_loop()
-    tasks = [asyncio.ensure_future(run_user_tasks(user, configData["default"])) for user in configData["users"]]
-    loop.run_until_complete(asyncio.wait(tasks))
-
-    if is_push_message:
-        try:
-            push_message(configData["SCKEY"], configData["email"])
-        except Exception as e: 
-            logging.error(f'消息推送异常，原因为{str(e)}')
+    loop.run_until_complete(asyncio.wait([start(configData)]))
 
 if __name__=="__main__":
     kwargs = {}
@@ -124,6 +137,6 @@ if __name__=="__main__":
             print('BliExp -c <configfile> -l <logfile>')
             sys.exit()
         elif opt == '-v':
-            print('BiliExp v1.1.5')
+            print(f'BiliExp v{main_version_str}')
             sys.exit()
     main(**kwargs)

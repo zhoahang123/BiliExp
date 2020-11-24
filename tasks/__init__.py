@@ -1,4 +1,4 @@
-__version__ = '1.1.5'
+__version__ = '1.1.6'
 
 from .activity_task import activity_task as activity_task
 from .clean_dynamic_task import clean_dynamic_task as clean_dynamic_task
@@ -19,6 +19,7 @@ from .xlive_bag_send_task import xlive_bag_send_task as xlive_bag_send_task
 from .xliveSign_task import xliveSign_task as xliveSign_task
 from .xlive_heartbeat_task import xlive_heartbeat_task as xlive_heartbeat_task
 from .xlive_anchor_task import xlive_anchor_task as xlive_anchor_task
+from .push_message_task import webhook
 
 __all__ = (
     'activity_task',
@@ -39,5 +40,6 @@ __all__ = (
     'xlive_bag_send_task',
     'xliveSign_task',
     'xlive_heartbeat_task',
-    'xlive_anchor_task'
+    'xlive_anchor_task',
+    'webhook'
 )

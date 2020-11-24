@@ -1,4 +1,5 @@
 from BiliClient import asyncbili
+from .push_message_task import webhook
 from .import_once import now_time
 from random import randint
 import logging, json, asyncio, re
@@ -87,6 +88,7 @@ async def repost_task_E(biliapi: asyncbili,
     '''跟踪转发模式'''
     force_follow = task_config.get("force_follow", False)
     users = set()
+    su1 = su2 = er1 = er2 = 0
     for uid in task_config["repost_by_others"]:
         async for x in get_space_dynamic(biliapi, uid):
             timestamp = x["desc"]["timestamp"]
@@ -138,21 +140,27 @@ async def repost_task_E(biliapi: asyncbili,
                 ret = await biliapi.dynamicReplyAdd(oid, reply, type)
             except Exception as e: 
                 logging.warning(f'{biliapi.name}: 评论动态(用户:{name},动态id:{dyid})失败，原因为({str(e)})')
+                er1 += 1
             else:
                 if ret["code"] == 0:
                     logging.info(f'{biliapi.name}: 评论动态(用户:{name},动态id:{dyid})成功')
+                    su1 += 1
                 else:
                     logging.warning(f'{biliapi.name}: 评论动态(用户:{name},动态id:{dyid})失败，信息为{ret["message"]}')
+                    er1 += 1
 
             try:
                 ret = await biliapi.dynamicRepostReply(dyid, repost)
             except Exception as e: 
                 logging.warning(f'{biliapi.name}: 转发动态(用户:{name},动态id:{dyid})失败，原因为({str(e)})')
+                er2 += 1
             else:
                 if ret["code"] == 0:
                     logging.info(f'{biliapi.name}: 转发动态(用户:{name},动态id:{dyid})成功')
+                    su2 += 1
                 else:
                     logging.warning(f'{biliapi.name}: 转发动态(用户:{name},动态id:{dyid})失败，信息为{ret["message"]}')
+                    er2 += 1
 
             if force_follow and not uid in users:
                 try:
@@ -171,11 +179,15 @@ async def repost_task_E(biliapi: asyncbili,
             else:
                 await asyncio.sleep(3)
 
+    if er1 or er2:
+        webhook.addMsg('msg_simple', f'{biliapi.name}:抽奖转发成功{su1}个,失败{er1}个,评论成功{su2}个,失败{er2}个\n')
+
 async def repost_task_X(biliapi: asyncbili, 
                        task_config: dict
                        ) -> None:
     '''转发互动抽奖，关键字抽奖'''
     already_repost_dyid = set() #记录动态列表中自己已经转发的动态id
+    su1 = su2 = er1 = er2 = 0
     rexs = [re.compile(x, re.S) for x in task_config["keywords"]]
     async for x in get_dynamic(biliapi):
         if x["desc"]["uid"] == biliapi.uid and x["desc"]["pre_dy_id_str"] != '0':
@@ -248,23 +260,32 @@ async def repost_task_X(biliapi: asyncbili,
                 ret = await biliapi.dynamicReplyAdd(oid, reply, type)
             except Exception as e: 
                 logging.warning(f'{biliapi.name}: 评论动态(用户:{uname},动态id:{dyid})失败，原因为({str(e)})')
+                er1 += 1
             else:
                 if ret["code"] == 0:
                     logging.info(f'{biliapi.name}: 评论动态(用户:{uname},动态id:{dyid})成功')
+                    su1 += 1
                 else:
                     logging.warning(f'{biliapi.name}: 评论动态(用户:{uname},动态id:{dyid})失败，信息为{ret["message"]}')
+                    er1 += 1
 
             try:
                 ret = await biliapi.dynamicRepostReply(dyid, repost)
             except Exception as e: 
                 logging.warning(f'{biliapi.name}: 转发动态(用户:{uname},动态id:{dyid})失败，原因为({str(e)})')
+                er2 += 1
             else:
                 if ret["code"] == 0:
                     logging.info(f'{biliapi.name}: 转发动态(用户:{uname},动态id:{dyid})成功')
+                    su2 += 1
                 else:
                     logging.warning(f'{biliapi.name}: 转发动态(用户:{uname},动态id:{dyid})失败，信息为{ret["message"]}')
+                    er2 += 1
 
             if "delay" in task_config:
                 await asyncio.sleep(randint(task_config["delay"][0], task_config["delay"][1]))
             else:
                 await asyncio.sleep(3)
+
+    if er1 or er2:
+        webhook.addMsg('msg_simple', f'{biliapi.name}:抽奖转发成功{su1}个,失败{er1}个,评论成功{su2}个,失败{er2}个\n')

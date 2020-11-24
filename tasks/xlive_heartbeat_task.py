@@ -1,4 +1,5 @@
 from BiliClient import asyncbili
+from .push_message_task import webhook
 import logging, asyncio, uuid, time, aiohttp
 
 async def xlive_heartbeat_task(biliapi: asyncbili,
@@ -14,7 +15,8 @@ async def xlive_heartbeat_task(biliapi: asyncbili,
 
     if send_msg:
         rooms = await get_rooms(biliapi)
-        tasks.append(send_msg_task(biliapi, rooms, send_msg))
+        if rooms:
+            tasks.append(send_msg_task(biliapi, rooms, send_msg))
     
     if num:
         if not room_id > 0:
@@ -31,6 +33,7 @@ async def xlive_heartbeat_task(biliapi: asyncbili,
             tasks.append(heartbeat_task(biliapi, room_id, num, max_time * 60))
         else:
             logging.info(f'{biliapi.name}: 没有获取到需要心跳的房间，跳过直播心跳')
+            webhook.addMsg('msg_simple', f'{biliapi.name}:直播心跳失败\n')
 
     if tasks:
         await asyncio.wait(tasks)
@@ -116,6 +119,7 @@ async def send_msg_task(biliapi: asyncbili,
                         rooms: list,
                         msg: str
                         ):
+    su = 0
     for roominfo in rooms:
         if roominfo[4] == 1:
             continue
@@ -131,6 +135,7 @@ async def send_msg_task(biliapi: asyncbili,
                 if ret["code"] == 0:
                     if ret["message"] == '':
                         logging.info(f'{biliapi.name}: 直播在房间{roominfo[0]}发送信息成功')
+                        su += 1
                         break
                     else:
                         logging.warning(f'{biliapi.name}: 直播在房间{roominfo[0]}发送信息，消息为{ret["message"]}，重试')
@@ -138,6 +143,7 @@ async def send_msg_task(biliapi: asyncbili,
                 else:
                     logging.warning(f'{biliapi.name}: 直播在房间{roominfo[0]}发送信息失败，消息为{ret["message"]}，跳过')
                     break
+    webhook.addMsg('msg_simple', f'{biliapi.name}:直播成功在{su}个房间发送消息\n')
 
 async def heartbeat_task(biliapi: asyncbili,
                          room_id: int,
@@ -148,18 +154,21 @@ async def heartbeat_task(biliapi: asyncbili,
         ret = await biliapi.xliveGetRoomInfo(room_id)
         if ret["code"] != 0:
             logging.info(f'{biliapi.name}: 直播请求房间信息失败，信息为：{ret["message"]}，跳过直播心跳')
+            webhook.addMsg('msg_simple', f'{biliapi.name}:直播心跳失败\n')
             return
         parent_area_id = ret["data"]["room_info"]["parent_area_id"]
         area_id = ret["data"]["room_info"]["area_id"]
         room_id = ret["data"]["room_info"]["room_id"] #为了防止上面的id是短id，这里确保得到的是长id
     except Exception as e:
         logging.warning(f'{biliapi.name}: 直播请求房间信息异常，原因为{str(e)}，跳过直播心跳')
+        webhook.addMsg('msg_simple', f'{biliapi.name}:直播心跳失败\n')
         return
 
     try:
         buvid = await biliapi.xliveGetBuvid()
     except Exception as e:
         logging.warning(f'{biliapi.name}: 获取直播buvid异常，原因为{str(e)}，跳过直播心跳')
+        webhook.addMsg('msg_simple', f'{biliapi.name}:直播心跳失败\n')
         return
 
     ii = 0
@@ -175,6 +184,7 @@ async def heartbeat_task(biliapi: asyncbili,
                 logging.info(f'{biliapi.name}: 成功在id为{room_id}的直播间发送完{ii}次心跳，退出直播心跳(达到最大心跳次数)')
                 break
             elif ltime >= max_time:
+                ltime -= wtime
                 logging.info(f'{biliapi.name}: 成功在id为{room_id}的直播间发送完{ii}次心跳，退出直播心跳(达到最大心跳时间)')
                 break
             else:
@@ -183,4 +193,5 @@ async def heartbeat_task(biliapi: asyncbili,
     
     except Exception as e:
         logging.warning(f'{biliapi.name}: 直播心跳异常，原因为{str(e)}，退出直播心跳')
-        return
+
+    webhook.addMsg('msg_simple', f'{biliapi.name}:直播心跳{ltime}秒,一共{ii}次\n')
