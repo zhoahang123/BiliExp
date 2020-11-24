@@ -139,31 +139,30 @@
             "activities": [] /* B站转盘抽奖列表 */
         }
     },
-    "webhook": { /* 用于自定义消息推送 */
+    "webhook": { /* 用于自定义消息推送,server酱消息推送只需填写下面SCKEY参数和在hooks参数中enable设置为true，另外提供邮箱推送和telegram推送模板,其他推送可自行添加 */
         "http_header": {"User-Agent":"Mozilla/5.0"}, /* 定义http头部 */
         "variable": { /* 声明任意变量,在hooks参数中的url参数和params参数中使用大括号{}可直接引用在此声明的变量 */
             "msg_simple": null, /* 简化的日志消息，下面msg_raw为完整日志消息，用于下面hooks消息推送接口引用 */
          /*   "msg_raw": null, */
             "title": "B站经验脚本消息推送",
-            "SCKEY": "",
+            "SCKEY": "" /*,
             "email": "",
             "telegram_bot_token": "",
-            "telegram_bot_chatid": ""
+            "telegram_bot_chatid": "" */
         },
         "hooks": [ /* 在这里定义所有消息推送回调接口 */
             {
                 "enable": false, /* 开关，需要开启请直接把本项删除或设置为true */
                 "name": "server酱消息推送", /* webhook名称 */
                 "msg_separ": "\n\n", /* 消息分隔符 */
-                "method": 1, /* 请求方式,0为get,1为post */
+                "method": 1, /* 请求方式,0为get,1为post,2为以json方式post */
                 "url": "https://sc.ftqq.com/{SCKEY}.send", /* 请求地址,{SCKEY}为对上面variable变量中的SCKEY的引用 */
                 "params": { /* 请求参数 */
                     "text": "{title}",
                     "desp": "{msg_simple}" 
-                }
-            },
+                } /* 需要其他消息推送方式请在下方自定义 */
+            }/* ,
             {
-                "enable": false,
                 "name": "邮箱消息推送",
                 "msg_separ": "<br>",
                 "method": 0,
@@ -175,7 +174,6 @@
                 }
             },
             {
-                "enable": true,
                 "name": "telegram_bot消息推送",
                 "method": 1,
                 "url": "https://api.telegram.org/bot{telegram_bot_token}/sendMessage",
@@ -183,7 +181,7 @@
                     "chat_id": "{telegram_bot_chatid}",
                     "text": "{msg_simple}"
                 }
-            }
+            }*/
         ]
     },
     "log_file": "BiliExp.log",/* 日志文件，不输出请留空 */

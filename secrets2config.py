@@ -45,13 +45,58 @@ if BILICONFIG:
         configData["users"] = users
 
 if PUSH_MESSAGE:
+    if not 'webhook' in configData:
+        configData["webhook"] = {
+            "http_header": {"User-Agent":"Mozilla/5.0"},
+            "variable": {
+                "msg_simple": None,
+                "title": "B站经验脚本消息推送"
+                }
+            }
+    i = 0
+    webhooks = []
     for x in PUSH_MESSAGE.split("\n"):
         value = x.strip()
         if x.startswith("SCU"):
-            configData["SCKEY"] = value
+            i += 1
+            webhooks.append({
+                "name": f"server酱消息推送{i}",
+                "msg_separ": r"\n\n",
+                "method": 1,
+                "url": f"https://sc.ftqq.com/{value}.send",
+                "params": {
+                    "text": "{title}",
+                    "desp": "{msg_simple}" 
+                }
+            })
         elif re.match("^.+\\@(\\[?)[a-zA-Z0-9\\-\\.]+\\.([a-zA-Z]{2,3}|[0-9]{1,3})(\\]?)$", value):
-            configData["email"] = value
+            i += 1
+            webhooks.append({
+                "name": f"邮箱消息推送{i}",
+                "msg_separ": r"<br>",
+                "method": 0,
+                "url": "http://liuxingw.com/api/mail/api.php",
+                "params": {
+                    "address": value,
+                    "name": "{title}",
+                    "certno": "{msg_simple}" 
+                }
+            })
+        else:
+            ma = re.match("^([0-9]{7,11}:[0-9 a-z A-Z]*),(.*)$", value)
+            if ma:
+                i += 1
+                ma = ma.groups()
+                webhooks.append({
+                    "name": f"telegram_bot消息推送{i}",
+                    "method": 1,
+                    "url": f"https://api.telegram.org/bot{ma[0]}/sendMessage",
+                    "params": {
+                        "chat_id": ma[1],
+                        "text": "{msg_simple}" 
+                    }
+                })
+    configData["webhook"]["hooks"] = webhooks
 
 with open('./config/config.json','w',encoding='utf-8') as fp:
     json.dump(configData, fp, ensure_ascii=False)
-
