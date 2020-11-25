@@ -1098,6 +1098,27 @@ class asyncBiliApi(object):
             ret = await r.json()
         return ret
 
+    async def dynamicLike(self, 
+                          dynamic_id: int, 
+                          like: int = 1
+                          ) -> dict:
+        '''
+        点赞动态
+        dynamic_id int 动态id
+        like int 1为点赞,2为取消点赞
+        '''
+        url = "https://api.vc.bilibili.com/dynamic_like/v1/dynamic_like/thumb"
+        post_data = {
+            "uid": self._uid,
+            "dynamic_id": dynamic_id,
+            "up": like,
+            "csrf_token": self._bili_jct,
+            "csrf": self._bili_jct
+            }
+        async with self._session.post(url, data=post_data, verify_ssl=False) as r:
+            ret = await r.json()
+        return ret
+
     async def dynamicRepost(self, 
                             dynamic_id: int, 
                             content="", 
