@@ -46,6 +46,7 @@ async def coin_task(biliapi: asyncbili,
             if flag:
                 try:
                     ret = await biliapi.coinCv(aid, 1, flag, 1)
+                    await biliapi.likeCv(aid)
                 except Exception as e:
                     logging.warning(f'{biliapi.name}: 投币专栏{aid}异常，原因为{str(e)}，跳过投币')
                     break

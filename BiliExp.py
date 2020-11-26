@@ -85,22 +85,23 @@ async def run_user_tasks(user: dict,           #用户配置
         task_array = [] #存放本账户所有任务
 
         for task in default: #遍历任务列表，把需要运行的任务添加到task_array
-            if isinstance(default[task], bool):
+            task_function = getattr(tasks, task, None)
+            if task_function:
                 if task in user["tasks"]:
-                    if user["tasks"][task]:
-                        task_function = getattr(tasks, task)#载入任务入口方法
-                        task_array.append(task_function(biliapi))               #放进任务列表
-                elif default[task]:
-                    task_function = getattr(tasks, task)
-                    task_array.append(task_function(biliapi))
-            elif isinstance(default[task], dict):
-                if task in user["tasks"]:
-                    if user["tasks"][task]["enable"]:
-                        task_function = getattr(tasks, task)
-                        task_array.append(task_function(biliapi, user["tasks"][task]))
-                elif default[task]["enable"]:
-                    task_function = getattr(tasks, task)
-                    task_array.append(task_function(biliapi, default[task]))
+                    if isinstance(user["tasks"][task], bool):
+                        if user["tasks"][task]:
+                            task_array.append(task_function(biliapi))
+                    elif isinstance(user["tasks"][task], dict):
+                        if 'enable' in user["tasks"][task] and user["tasks"][task]["enable"]:
+                            task_array.append(task_function(biliapi, user["tasks"][task]))
+                else:
+                    if isinstance(default[task], bool):
+                        if default[task]:
+                            task_array.append(task_function(biliapi))
+                    elif isinstance(default[task], dict):
+                        if 'enable' in default[task] and default[task]["enable"]:
+                            task_array.append(task_function(biliapi, default[task]))
+
         if task_array:
             await asyncio.wait(task_array)        #异步等待所有任务完成
 
