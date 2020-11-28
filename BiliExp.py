@@ -26,7 +26,7 @@ def initlog(log_file: str, log_console: bool, msg_raw: bool = False):
              file_handler.setFormatter(formatter1)
              logger_raw.addHandler(file_handler)
         except:
-            pass
+            ...
     if log_console:
         console_handler = logging.StreamHandler(stream=sys.stdout) #输出到控制台
         console_handler.setFormatter(formatter1)
@@ -62,7 +62,7 @@ async def start(configData: dict):
     else:
         logging.warning(f'当前程序版本为v{main_version_str},配置文件版本为v{config_version},可更新配置文件')
         tasks.webhook.addMsg('msg_simple', '有新版本配置文件可供使用\n')
-
+    
     await asyncio.wait([run_user_tasks(user, configData["default"]) for user in configData["users"]]) #执行任务
     await tasks.webhook.send() #推送消息
 

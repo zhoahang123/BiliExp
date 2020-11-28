@@ -1,4 +1,4 @@
-from aiohttp import ClientSession
+from aiohttp import ClientSession, ClientTimeout
 import asyncio, logging
 from io import StringIO
 class WebHook:
@@ -36,7 +36,8 @@ class WebHook:
     async def send(self):
         if self._is_set and len(self):
             try:
-                async with ClientSession() as s:
+                timeout = ClientTimeout(total=30, connect=5, sock_connect=15, sock_read=15)
+                async with ClientSession(timeout=timeout) as s:
                     await asyncio.wait([self._send(ii, s) for ii in range(len(self))])
             except Exception as e: 
                 logging.warning(f'推送消息异常，原因为{str(e)}')
@@ -76,18 +77,20 @@ class WebHook:
                         params[p] = params[p].replace(var, variable[v].getvalue())
                 else:
                     params[p] = params[p].replace(var, variable[v])
-
+        result = None
         try:
             if hook["method"] == 0:
                 async with session.get(url, params=params, headers=headers, verify_ssl=False) as r:
-                    await r.read()
+                    result = await r.text()
             elif hook["method"] == 1:
                 async with session.post(url, data=params, headers=headers, verify_ssl=False) as r:
-                    await r.read()
+                    result = await r.text()
             elif hook["method"] == 3:
                 async with session.post(url, json=params, headers=headers, verify_ssl=False) as r:
-                    await r.read()
+                    result = await r.text()
         except Exception as e: 
             logging.warning(f'推送消息({hook["name"]})异常，原因为{str(e)}')
+        if result:
+            logging.info(f'推送消息({hook["name"]}),结果:{result}')
 
 webhook = WebHook()

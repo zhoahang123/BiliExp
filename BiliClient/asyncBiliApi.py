@@ -1058,7 +1058,7 @@ class asyncBiliApi(object):
         else:
             url = f'https://api.vc.bilibili.com/dynamic_svr/v1/dynamic_svr/dynamic_new?uid={self._uid}&type_list={type_list}'
         async with self._session.get(url, verify_ssl=False) as r:
-            ret = await r.json()
+            ret = await r.json(content_type=None)
         return ret
 
     async def getDynamicDetail(self, 

@@ -1,8 +1,9 @@
 from BiliClient import asyncbili
+from aiohttp.client_exceptions import ServerDisconnectedError
 from .push_message_task import webhook
 from .import_once import now_time
 from random import randint
-import logging, json, asyncio, re
+import logging, json, asyncio, re, aiohttp
 
 end_time = now_time - (now_time + 28800) % 86400 + 43200 #当天中午12点
 start_time = end_time - 86400
@@ -23,6 +24,8 @@ async def get_dynamic(biliapi: asyncbili) -> dict:
     while hasnext:
         try:
             ret = await biliapi.getDynamic(offset)
+        except ServerDisconnectedError: 
+            logging.warning(f'{biliapi.name}: 获取动态列表时服务器强制断开连接，尝试重试动态列表获取')
         except Exception as e: 
             if retry:
                 retry -= 1
@@ -44,7 +47,7 @@ async def get_dynamic(biliapi: asyncbili) -> dict:
                 for x in cards:
                     yield x
             else:
-                logging.warning(f'{biliapi.name}: 获取动态列表失败，原因为{ret["msg"]}，跳过转发抽奖动态')
+                logging.warning(f'{biliapi.name}: 获取动态列表失败，原因为{ret["message"]}，跳过转发抽奖动态')
                 break
 
 async def get_space_dynamic(biliapi: asyncbili,
@@ -57,6 +60,8 @@ async def get_space_dynamic(biliapi: asyncbili,
     while hasnext:
         try:
             ret = await biliapi.getSpaceDynamic(uid, offset)
+        except ServerDisconnectedError: 
+            logging.warning(f'{biliapi.name}: 获取空间动态时服务器强制断开连接，尝试重试空间动态获取')
         except Exception as e: 
             if retry:
                 retry -= 1
