@@ -2,8 +2,8 @@ name: auto_merge
 
 on:
   workflow_dispatch:
-#  schedule:
-#    - cron: 0 2 * * fri
+  schedule:
+    - cron: 0 2 * * fri
 # cron表达式,每周五10点执行一次，UTC时间，使用北京时间请+8可按照需求自定义。要启用请把上面两行(不是本行)前面的#去掉
 
 jobs:
