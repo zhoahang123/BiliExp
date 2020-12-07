@@ -180,11 +180,17 @@ async def heartbeat_task(biliapi: asyncbili,
 
     ii = 0
     ltime = 0
+    retry = 2
     try:
         async for code, message, wtime in xliveHeartBeat(biliapi, buvid, parent_area_id, area_id, room_id): #每一次迭代发送一次心跳
             if code != 0:
+                if retry:
+                    logging.warning(f'{biliapi.name}: 直播心跳错误，原因为{message}，重新尝试')
+                    retry -= 1
+                    continue
                 logging.warning(f'{biliapi.name}: 直播心跳错误，原因为{message}，跳过直播心跳')
-                return
+                break
+            retry = 2
             ii += 1
             ltime += wtime
             if ii >= num:
