@@ -123,7 +123,7 @@ async def repost_task_E(biliapi: asyncbili,
                 uid = x["desc"]["origin"]["uid"]
             else:
                 continue
-
+            
             if 'card' in x:
                 card = json.loads(x["card"])
                 if 'origin_user' in card and 'info' in card["origin_user"] and 'uname' in card["origin_user"]["info"]:
