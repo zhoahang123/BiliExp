@@ -61,7 +61,7 @@ if PUSH_MESSAGE:
             i += 1
             webhooks.append({
                 "name": f"server酱消息推送{i}",
-                "msg_separ": r"\n\n",
+                "msg_separ": "\n\n",
                 "method": 1,
                 "url": f"https://sc.ftqq.com/{value}.send",
                 "params": {
