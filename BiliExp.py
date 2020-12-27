@@ -73,6 +73,7 @@ async def run_user_tasks(user: dict,           #用户配置
         try:
             if not await biliapi.login_by_cookie(user["cookieDatas"]):
                 logging.warning(f'id为{user["cookieDatas"]["DedeUserID"]}的账户cookie失效，跳过此账户后续操作')
+                tasks.webhook.addMsg('msg_simple', f'id为{user["cookieDatas"]["DedeUserID"]}的账户cookie失效\n')
                 return
         except Exception as e: 
             logging.warning(f'登录验证id为{user["cookieDatas"]["DedeUserID"]}的账户失败，原因为{str(e)}，跳过此账户后续操作')
@@ -81,6 +82,9 @@ async def run_user_tasks(user: dict,           #用户配置
         show_name = user.get("show_name", "")
         if show_name:
             biliapi.name = show_name
+
+        logging.info(f'{biliapi.name}: 等级{biliapi.level},经验{biliapi.myexp},剩余硬币{biliapi.mycoin}')
+        tasks.webhook.addMsg('msg_simple', f'{biliapi.name}: 等级{biliapi.level},经验{biliapi.myexp},剩余硬币{biliapi.mycoin}\n')
 
         task_array = [] #存放本账户所有任务
 
