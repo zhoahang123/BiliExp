@@ -45,14 +45,19 @@ if BILICONFIG:
         configData["users"] = users
 
 if PUSH_MESSAGE:
-    if not 'webhook' in configData:
-        configData["webhook"] = {
-            "http_header": {"User-Agent":"Mozilla/5.0"},
-            "variable": {
-                "msg_simple": None,
-                "title": "B站经验脚本消息推送"
-                }
+    ADVCONFIG: str = os.environ.get('ADVCONFIG', None)
+    if os.environ.get('SIMPLIFIED', '0') == '1':
+        msg_type = 'msg_simple'
+    else:
+        msg_type = 'msg_raw'
+
+    configData["webhook"] = {
+        "http_header": {"User-Agent":"Mozilla/5.0"},
+        "variable": {
+            msg_type: None,
+            "title": "B站经验脚本消息推送"
             }
+        }
     i = 0
     webhooks = []
     for x in PUSH_MESSAGE.split("\n"):
@@ -61,12 +66,12 @@ if PUSH_MESSAGE:
             i += 1
             webhooks.append({
                 "name": f"server酱消息推送{i}",
-                "msg_separ": r"\n\n",
+                "msg_separ": "\n\n",
                 "method": 1,
                 "url": f"https://sc.ftqq.com/{value}.send",
                 "params": {
                     "text": "{title}",
-                    "desp": "{msg_simple}" 
+                    "desp": f"{{{msg_type}}}" 
                 }
             })
         elif re.match("^.+\\@(\\[?)[a-zA-Z0-9\\-\\.]+\\.([a-zA-Z]{2,3}|[0-9]{1,3})(\\]?)$", value):
@@ -79,7 +84,7 @@ if PUSH_MESSAGE:
                 "params": {
                     "address": value,
                     "name": "{title}",
-                    "certno": "{msg_simple}" 
+                    "certno": f"{{{msg_type}}}"
                 }
             })
         else:
@@ -93,7 +98,7 @@ if PUSH_MESSAGE:
                     "url": f"https://api.telegram.org/bot{ma[0]}/sendMessage",
                     "params": {
                         "chat_id": ma[1],
-                        "text": "{msg_simple}" 
+                        "text": f"{{{msg_type}}}" 
                     }
                 })
     configData["webhook"]["hooks"] = webhooks
